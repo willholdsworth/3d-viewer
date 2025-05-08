@@ -87,7 +87,7 @@
     <button id="toggle-sidebar">☰ Menu</button>
     <div id="sidebar">
         <h2>Model Viewer</h2>
-        <input type="file" id="model-input" accept=".glb,.gltf,.usd,.usdz" style="display: none;">
+        <input type="file" id="model-input" accept=".glb,.gltf,.usdz" style="display: none;">
         <button id="upload-model">Upload Model</button>
     </div>
     <div id="model-viewer-container">
@@ -109,7 +109,7 @@
             style="display: none;">
             <button slot="ar-button" class="ar-button">View in AR</button>
             <div slot="poster" style="text-align: center; padding: 20px;">
-                <p>Please upload a 3D model (.glb, .gltf, .usd, or .usdz) to view.</p>
+                <p>Please upload a 3D model (.glb, .gltf, or .usdz) to view.</p>
             </div>
         </model-viewer>
     </div>
@@ -133,11 +133,13 @@
 
         modelInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
-            if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf') || file.name.endsWith('.usd') || file.name.endsWith('.usdz'))) {
+            if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf') || file.name.endsWith('.usdz'))) {
                 const url = URL.createObjectURL(file);
                 modelViewer.src = url;
                 if (file.name.endsWith('.usdz')) {
-                    modelViewer.iosSrc = url; // Set ios-src for Quick Look on iOS
+                    modelViewer.setAttribute('ios-src', url); // Set ios-src for Quick Look on iOS
+                } else {
+                    modelViewer.removeAttribute('ios-src');
                 }
                 modelViewer.style.display = 'block';
                 modelViewer.poster = '';
@@ -152,14 +154,31 @@
                         modelViewer.animationName = '';
                     }
 
-                    // Ensure AR is enabled
+                    // Ensure AR is enabled and configured
                     modelViewer.setAttribute('ar', '');
                     modelViewer.setAttribute('ar-modes', 'webxr scene-viewer quick-look');
+                    modelViewer.setAttribute('ar-scale', 'auto');
+                    modelViewer.setAttribute('ar-placement', 'floor');
                 }, { once: true });
             } else {
-                alert('Please upload a valid .glb, .gltf, .usd, or .usdz file.');
+                alert('Please upload a valid .glb, .gltf, or .usdz file.');
             }
         });
+
+        // Log AR status for debugging
+        modelViewer.addEventListener('ar-status', (event) => {
+            console.log('AR status:', event.detail.status);
+        });
+
+        // Hide AR button if AR is not supported
+        modelViewer.addEventListener('load', () => {
+            if (!modelViewer.canActivateAR) {
+                const arButton = modelViewer.querySelector('.ar-button');
+                if (arButton) {
+                    arButton.style.display = 'none';
+                }
+            }
+        }, { once: true });
     </script>
 </body>
 </html>
