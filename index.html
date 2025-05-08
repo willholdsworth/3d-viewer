@@ -360,6 +360,9 @@
             justify-content: center;
             background-color: rgba(255, 255, 255, 0.3);
         }
+        .ar-controls button:disabled {
+            opacity: 0.5;
+        }
         .toggle-switch {
             position: relative;
             display: inline-block;
@@ -450,6 +453,13 @@
                     <span class="toggle-slider"></span>
                 </label>
             </div>
+            <div class="option-row">
+                <label for="auto-place-toggle">Auto-place in AR</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="auto-place-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
         </div>
         
         <div class="section">
@@ -485,15 +495,6 @@
                 Load a model first to use AR
             </div>
         </div>
-        
-        <div class="section">
-            <h2>Utilities</h2>
-            <div class="utility-buttons">
-                <button id="take-screenshot" disabled>Screenshot</button>
-                <button id="start-recording" disabled>Record AR</button>
-                <button id="stop-recording" disabled style="display: none;">Stop Recording</button>
-            </div>
-        </div>
     </div>
     
     <button id="ar-button">View in AR</button>
@@ -514,6 +515,9 @@
         <button id="ar-scale-down">-</button>
         <button id="ar-rotate-left">↺</button>
         <button id="ar-rotate-right">↻</button>
+        <button id="take-screenshot">📷</button>
+        <button id="start-recording">🔴</button>
+        <button id="stop-recording" style="display: none;">⏹️</button>
     </div>
     
     <div id="loading" class="loading" style="display: none;">
@@ -545,6 +549,7 @@
         let lights = [];
         let envMap = null;
         let grid = null;
+        let autoPlace = true;
         
         let arSupported = false;
         let arSession = null;
@@ -558,6 +563,8 @@
         
         let savedCameraPosition = new THREE.Vector3();
         let savedCameraTarget = new THREE.Vector3();
+        let initialCameraPosition = null;
+        let initialCameraTarget = new THREE.Vector3(0, 0, 0);
         
         let mediaRecorder = null;
         let recordedChunks = [];
@@ -765,6 +772,7 @@
             document.getElementById('toggle-environment').addEventListener('click', toggleEnvironment);
             document.getElementById('toggle-grid').addEventListener('click', toggleGrid);
             document.getElementById('dark-mode-toggle').addEventListener('change', toggleDarkMode);
+            document.getElementById('auto-place-toggle').addEventListener('change', toggleAutoPlace);
             
             document.getElementById('animation-select').addEventListener('change', selectAnimation);
             document.getElementById('camera-select').addEventListener('change', selectCamera);
@@ -803,6 +811,10 @@
                     rotateARModel(Math.PI / 8);
                 }
             });
+        }
+        
+        function toggleAutoPlace() {
+            autoPlace = document.getElementById('auto-place-toggle').checked;
         }
         
         function handleFileSelect(file) {
@@ -891,9 +903,6 @@
             hideLoading();
             
             isModelLoaded = true;
-            
-            document.getElementById('take-screenshot').disabled = false;
-            document.getElementById('start-recording').disabled = false;
         }
         
         function setupAnimations(gltf) {
@@ -1053,8 +1062,7 @@
             if (!arSession || !modelPlaced) return;
             
             document.getElementById('start-recording').style.display = 'none';
-            document.getElementById('stop-recording').style.display = 'inline-block';
-            document.getElementById('stop-recording').disabled = false;
+            document.getElementById('stop-recording').style.display = 'inline-flex';
             document.getElementById('recording-indicator').style.display = 'block';
             
             recordedChunks = [];
@@ -1084,7 +1092,7 @@
             mediaRecorder.stop();
             isRecording = false;
             
-            document.getElementById('start-recording').style.display = 'inline-block';
+            document.getElementById('start-recording').style.display = 'inline-flex';
             document.getElementById('stop-recording').style.display = 'none';
             document.getElementById('recording-indicator').style.display = 'none';
         }
@@ -1111,6 +1119,26 @@
                     currentAnimationAction.play();
                 } else {
                     currentAnimationAction.stop();
+                }
+            }
+            
+            if (modelPlaced && arSession) {
+                const arModel = scene.children.find(obj => obj.userData && obj.userData.isARModel);
+                if (arModel) {
+                    if (isAnimationEnabled) {
+                        if (!arModel.userData.mixer && animationActions.length > 0) {
+                            const activeAnimIndex = parseInt(document.getElementById('animation-select').value);
+                            if (activeAnimIndex >= 0 && activeAnimIndex < animationActions.length) {
+                                const arMixer = new THREE.AnimationMixer(arModel);
+                                const clip = animationActions[activeAnimIndex]._clip;
+                                const action = arMixer.clipAction(clip);
+                                action.play();
+                                arModel.userData.mixer = arMixer;
+                            }
+                        }
+                    } else if (arModel.userData.mixer) {
+                        arModel.userData.mixer.stopAllAction();
+                    }
                 }
             }
         }
@@ -1212,8 +1240,13 @@
         function onARSessionStarted(session) {
             arSession = session;
             
-            document.getElementById('ar-overlay').style.display = 'flex';
-            document.getElementById('place-button').style.display = 'block';
+            if (autoPlace) {
+                document.getElementById('ar-overlay').style.display = 'none';
+            } else {
+                document.getElementById('ar-overlay').style.display = 'flex';
+                document.getElementById('place-button').style.display = 'block';
+            }
+            
             document.getElementById('exit-ar').style.display = 'block';
             document.querySelector('.ar-instructions').style.display = 'block';
             document.body.classList.add('ar-mode');
@@ -1249,6 +1282,17 @@
                 arModel.scale.set(0.5, 0.5, 0.5);
                 arModel.position.set(0, 0, 0);
                 arModel.userData.isARModel = true;
+                
+                if (animationActions.length > 0 && isAnimationEnabled) {
+                    const activeAnimIndex = parseInt(document.getElementById('animation-select').value);
+                    if (activeAnimIndex >= 0 && activeAnimIndex < animationActions.length) {
+                        const arMixer = new THREE.AnimationMixer(arModel);
+                        const clip = animationActions[activeAnimIndex]._clip;
+                        const action = arMixer.clipAction(clip);
+                        action.play();
+                        arModel.userData.mixer = arMixer;
+                    }
+                }
             }
             
             document.querySelector('.ar-controls').style.display = 'flex';
@@ -1358,17 +1402,15 @@
             
             arSession = null;
             
-            camera.position.copy(savedCameraPosition);
-            controls.target.copy(savedCameraTarget);
-            controls.update();
-            
             if (isRecording) {
                 stopRecording();
             }
             
-            setTimeout(() => {
-                centerModel();
-            }, 100);
+            if (initialCameraPosition) {
+                camera.position.copy(initialCameraPosition);
+                controls.target.copy(initialCameraTarget);
+                controls.update();
+            }
         }
         
         function exitAR() {
@@ -1388,7 +1430,22 @@
                 modelPlaced = true;
                 
                 document.getElementById('place-button').style.display = 'none';
-                document.querySelector('.ar-instructions').textContent = 'Model placed. You can walk around it.';
+                document.getElementById('ar-overlay').style.display = 'none';
+                document.querySelector('.ar-instructions').style.display = 'none';
+                
+                if (mixer && isAnimationEnabled) {
+                    const newMixer = new THREE.AnimationMixer(arModel);
+                    
+                    if (animationActions.length > 0) {
+                        const activeAnimIndex = parseInt(document.getElementById('animation-select').value);
+                        if (activeAnimIndex >= 0 && activeAnimIndex < animationActions.length) {
+                            const clip = animationActions[activeAnimIndex]._clip;
+                            const newAction = newMixer.clipAction(clip);
+                            newAction.play();
+                            arModel.userData.mixer = newMixer;
+                        }
+                    }
+                }
             }
         }
         
@@ -1416,9 +1473,17 @@
         function render(timestamp, frame) {
             if (controls) controls.update();
             
-            if (mixer && isAnimationEnabled) {
+            if (mixer && isAnimationEnabled && !arSession) {
                 mixer.update(clock.getDelta());
             }
+            
+            const delta = clock.getDelta();
+            
+            scene.traverse((object) => {
+                if (object.userData && object.userData.mixer) {
+                    object.userData.mixer.update(delta);
+                }
+            });
             
             if (frame && arSession) {
                 const referenceSpace = renderer.xr.getReferenceSpace();
@@ -1433,8 +1498,13 @@
                         if (pose) {
                             reticle.visible = true;
                             reticle.matrix.fromArray(pose.transform.matrix);
-                            document.getElementById('place-button').style.opacity = '1';
-                            document.getElementById('place-button').disabled = false;
+                            
+                            if (autoPlace) {
+                                placeModel();
+                            } else {
+                                document.getElementById('place-button').style.opacity = '1';
+                                document.getElementById('place-button').disabled = false;
+                            }
                         }
                     } else {
                         reticle.visible = false;
