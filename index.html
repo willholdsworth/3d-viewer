@@ -57,6 +57,21 @@
         #upload-model:hover {
             background: #0056b3;
         }
+        .ar-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+        .ar-button:hover {
+            background-color: #0056b3;
+        }
         @media (max-width: 768px) {
             #sidebar {
                 position: absolute;
@@ -72,7 +87,7 @@
     <button id="toggle-sidebar">☰ Menu</button>
     <div id="sidebar">
         <h2>Model Viewer</h2>
-        <input type="file" id="model-input" accept=".glb,.gltf" style="display: none;">
+        <input type="file" id="model-input" accept=".glb,.gltf,.usd,.usdz" style="display: none;">
         <button id="upload-model">Upload Model</button>
     </div>
     <div id="model-viewer-container">
@@ -81,6 +96,8 @@
             src=""
             ar
             ar-modes="webxr scene-viewer quick-look"
+            ar-scale="auto"
+            ar-placement="floor"
             camera-controls
             disable-pan
             interaction-policy="allow-when-focused"
@@ -88,9 +105,11 @@
             animation-name=""
             autoplay
             poster=""
+            ios-src=""
             style="display: none;">
+            <button slot="ar-button" class="ar-button">View in AR</button>
             <div slot="poster" style="text-align: center; padding: 20px;">
-                <p>Please upload a 3D model (.glb or .gltf) to view.</p>
+                <p>Please upload a 3D model (.glb, .gltf, .usd, or .usdz) to view.</p>
             </div>
         </model-viewer>
     </div>
@@ -114,9 +133,12 @@
 
         modelInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
-            if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
+            if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf') || file.name.endsWith('.usd') || file.name.endsWith('.usdz'))) {
                 const url = URL.createObjectURL(file);
                 modelViewer.src = url;
+                if (file.name.endsWith('.usdz')) {
+                    modelViewer.iosSrc = url; // Set ios-src for Quick Look on iOS
+                }
                 modelViewer.style.display = 'block';
                 modelViewer.poster = '';
 
@@ -129,21 +151,13 @@
                     } else {
                         modelViewer.animationName = '';
                     }
-                });
-            } else {
-                alert('Please upload a valid .glb or .gltf file.');
-            }
-        });
 
-        // Handle AR button styling
-        modelViewer.addEventListener('load', () => {
-            const arButton = modelViewer.querySelector('button[slot="ar-button"]');
-            if (arButton) {
-                arButton.style.background = '#007bff';
-                arButton.style.color = 'white';
-                arButton.style.padding = '10px';
-                arButton.style.border = 'none';
-                arButton.style.borderRadius = '5px';
+                    // Ensure AR is enabled
+                    modelViewer.setAttribute('ar', '');
+                    modelViewer.setAttribute('ar-modes', 'webxr scene-viewer quick-look');
+                }, { once: true });
+            } else {
+                alert('Please upload a valid .glb, .gltf, .usd, or .usdz file.');
             }
         });
     </script>
