@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="ar-enabled" content="true" />
   <title>Fullscreen GLB Viewer with AR</title>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <style>
     html, body {
       margin: 0;
@@ -47,7 +47,6 @@
       border: 1px solid #444;
     }
     button[slot="ar-button"] {
-      display: none;
       position: absolute;
       bottom: 16px;
       left: 50%;
@@ -67,8 +66,8 @@
     button[slot="ar-button"]:hover {
       background: #3267d6;
     }
-    button[slot="ar-button"].enabled {
-      display: block;
+    button[slot="ar-button"].hidden {
+      display: none;
     }
     #loading {
       position: absolute;
@@ -149,11 +148,17 @@
           }, { once: true });
           modelViewer.addEventListener('error', (error) => {
             console.error('Model loading error:', error);
-            reject(new Error('Failed to load model'));
+            reject(new Error('Failed to load model: ' + (error.detail?.message || 'Unknown error')));
           }, { once: true });
+          // Timeout to catch silent failures
+          setTimeout(() => reject(new Error('Model loading timed out')), 10000);
         });
+
+        // Warn about AR blob URL limitations
+        console.log('Note: AR may not work with blob URLs in Scene Viewer or Quick Look. Consider hosting the model on a server.');
       } catch (error) {
         alert('Error loading model: ' + error.message);
+        console.error('Error details:', error);
         modelViewer.src = null;
       } finally {
         showLoading(false);
@@ -163,10 +168,11 @@
     // Handle AR status to show/hide AR button
     modelViewer.addEventListener('ar-status', (event) => {
       console.log('AR status:', event.detail.status);
-      if (event.detail.status === 'failed' || event.detail.status === 'not-presenting') {
-        arButton.classList.remove('enabled');
+      if (event.detail.status === 'failed') {
+        arButton.classList.add('hidden');
+        alert('AR is not supported on this device or browser. Try Chrome (Android) or Safari (iOS) with ARCore/ARKit.');
       } else {
-        arButton.classList.add('enabled');
+        arButton.classList.remove('hidden');
       }
     });
 
