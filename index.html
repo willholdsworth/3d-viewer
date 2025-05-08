@@ -82,7 +82,11 @@
             ar
             ar-modes="webxr scene-viewer quick-look"
             camera-controls
+            disable-pan
+            interaction-policy="allow-when-focused"
             auto-rotate
+            animation-name=""
+            autoplay
             poster=""
             style="display: none;">
             <div slot="poster" style="text-align: center; padding: 20px;">
@@ -115,6 +119,17 @@
                 modelViewer.src = url;
                 modelViewer.style.display = 'block';
                 modelViewer.poster = '';
+
+                // Check for animations and set the first one to play
+                modelViewer.addEventListener('load', () => {
+                    const animations = modelViewer.availableAnimations;
+                    if (animations && animations.length > 0) {
+                        modelViewer.animationName = animations[0];
+                        modelViewer.play({ repetitions: Infinity });
+                    } else {
+                        modelViewer.animationName = '';
+                    }
+                });
             } else {
                 alert('Please upload a valid .glb or .gltf file.');
             }
