@@ -122,7 +122,7 @@
             display: none;
         }
         #ar-button {
-            background-color: #4CAF50;
+            background-color: #4285f4;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -134,9 +134,12 @@
             transform: translateX(-50%);
             z-index: 10;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 16px;
+            font-weight: 500;
+            display: none;
         }
         #ar-button:hover {
-            background-color: #45a049;
+            background-color: #3267d6;
         }
         #ar-prompt {
             position: absolute;
@@ -163,7 +166,7 @@
         }
         .update-bar {
             height: 100%;
-            background: #4CAF50;
+            background: #4285f4;
             width: 0%;
             transition: width 0.3s;
         }
@@ -221,8 +224,7 @@
             tone-mapping="neutral"
             shadow-intensity="1"
             autoplay
-            poster=""
-            ios-src="">
+            poster="">
             <div class="progress-bar" slot="progress-bar">
                 <div class="update-bar"></div>
             </div>
@@ -247,6 +249,7 @@
         const modelViewer = document.getElementById('model-viewer');
         const progressBar = document.querySelector('.progress-bar');
         const updateBar = document.querySelector('.update-bar');
+        const arButton = document.getElementById('ar-button');
         const arPrompt = document.getElementById('ar-prompt');
 
         toggleSidebar.addEventListener('click', () => {
@@ -309,6 +312,11 @@
                     modelViewer.setAttribute('ar-modes', 'scene-viewer webxr quick-look');
                     modelViewer.setAttribute('ar-scale', 'auto');
                     modelViewer.setAttribute('ar-placement', 'floor');
+
+                    // Show AR button if AR is supported
+                    if (modelViewer.canActivateAR) {
+                        arButton.style.display = 'block';
+                    }
                 }, { once: true });
             } else {
                 alert('Please upload a valid .glb, .gltf, or .usdz file.');
@@ -325,15 +333,6 @@
             console.log('AR status:', event.detail.status);
             arPrompt.style.display = event.detail.status === 'session-started' ? 'block' : 'none';
         });
-
-        modelViewer.addEventListener('load', () => {
-            if (!modelViewer.canActivateAR) {
-                const arButton = document.getElementById('ar-button');
-                if (arButton) {
-                    arButton.style.display = 'none';
-                }
-            }
-        }, { once: true });
 
         function adjustForMobile() {
             if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
