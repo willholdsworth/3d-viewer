@@ -11,11 +11,6 @@
             background-color: #f5f5f5;
             color: #444;
             overflow: hidden;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        body.dark-mode {
-            background-color: #000000;
-            color: #ffffff;
         }
         #canvas-container {
             position: absolute;
@@ -25,10 +20,6 @@
             height: 100%;
             background: #ffffff;
             z-index: 1;
-            transition: background-color 0.3s;
-        }
-        body.dark-mode #canvas-container {
-            background: #000000;
         }
         .sidebar {
             position: absolute;
@@ -44,12 +35,6 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease, background-color 0.3s, color 0.3s;
-        }
-        body.dark-mode .sidebar {
-            background: #000000;
-            color: #ffffff;
-            box-shadow: -2px 0 10px rgba(255, 255, 255, 0.1);
         }
         .header {
             margin-bottom: 20px;
@@ -66,19 +51,11 @@
             margin: 0;
             font-size: 14px;
             color: #666;
-            transition: color 0.3s;
-        }
-        body.dark-mode .header p {
-            color: #aaa;
         }
         .section {
             border-top: 1px solid #eee;
             margin-top: 15px;
             padding-top: 15px;
-            transition: border-color 0.3s;
-        }
-        body.dark-mode .section {
-            border-top: 1px solid #333;
         }
         .section h2 {
             margin: 0 0 10px;
@@ -92,17 +69,11 @@
             text-align: center;
             cursor: pointer;
             margin-bottom: 15px;
-            transition: all 0.2s, border-color 0.3s, background-color 0.3s;
-        }
-        body.dark-mode .file-drop {
-            border-color: #555;
+            transition: all 0.2s;
         }
         .file-drop:hover, .file-drop.dragover {
             border-color: #2196f3;
             background-color: rgba(33, 150, 243, 0.05);
-        }
-        body.dark-mode .file-drop:hover, body.dark-mode .file-drop.dragover {
-            background-color: rgba(33, 150, 243, 0.15);
         }
         .file-drop p {
             margin: 0;
@@ -123,15 +94,6 @@
         button:hover {
             background-color: #0b7dda;
         }
-        button:disabled {
-            background-color: #cccccc;
-            color: #666666;
-            cursor: not-allowed;
-        }
-        body.dark-mode button:disabled {
-            background-color: #333333;
-            color: #999999;
-        }
         .controls-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -145,17 +107,10 @@
             padding: 10px;
             border-radius: 4px;
             cursor: pointer;
-            transition: all 0.2s, background-color 0.3s, color 0.3s;
-        }
-        body.dark-mode .control-button {
-            background-color: #333;
-            color: #fff;
+            transition: all 0.2s;
         }
         .control-button:hover {
             background-color: #e0e0e0;
-        }
-        body.dark-mode .control-button:hover {
-            background-color: #444;
         }
         .control-button.active {
             background-color: #2196f3;
@@ -178,12 +133,6 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             background-color: white;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-        }
-        body.dark-mode select {
-            background-color: #333;
-            color: #fff;
-            border-color: #555;
         }
         .loading {
             position: absolute;
@@ -195,11 +144,6 @@
             border-radius: 8px;
             text-align: center;
             z-index: 3;
-            transition: background-color 0.3s;
-        }
-        body.dark-mode .loading {
-            background: rgba(0, 0, 0, 0.8);
-            color: #fff;
         }
         .toggle-sidebar {
             position: absolute;
@@ -211,18 +155,15 @@
             padding: 10px;
             cursor: pointer;
             box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-            transition: right 0.3s ease, background-color 0.3s, box-shadow 0.3s;
-        }
-        body.dark-mode .toggle-sidebar {
-            background: #333;
-            color: #fff;
-            box-shadow: -2px 0 5px rgba(255, 255, 255, 0.1);
         }
         .sidebar-hidden .sidebar {
-            transform: translateX(100%);
+            transform: translateX(300px);
         }
         .sidebar-hidden .toggle-sidebar {
             right: 10px;
+        }
+        .sidebar, .toggle-sidebar {
+            transition: all 0.3s ease;
         }
         #ar-button {
             position: absolute;
@@ -311,110 +252,6 @@
             z-index: 1001;
             display: none;
         }
-        .utility-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .utility-buttons button {
-            flex: 1;
-            min-width: 80px;
-            margin-top: 0;
-        }
-        #recording-indicator {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background-color: #f44336;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            z-index: 1001;
-            display: none;
-            animation: blink 1s infinite alternate;
-        }
-        @keyframes blink {
-            from { opacity: 1; }
-            to { opacity: 0.5; }
-        }
-        .ar-controls {
-            position: fixed;
-            bottom: 80px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            z-index: 1001;
-            display: none;
-        }
-        .ar-controls button {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            font-size: 20px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-        .ar-controls button:disabled {
-            opacity: 0.5;
-        }
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 24px;
-            margin-left: 10px;
-        }
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px;
-        }
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .toggle-slider {
-            background-color: #2196F3;
-        }
-        input:checked + .toggle-slider:before {
-            transform: translateX(26px);
-        }
-        .option-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 10px 0;
-        }
-        
-        @media screen and (max-width: 767px) {
-            .sidebar {
-                width: 260px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -444,21 +281,6 @@
                 <div class="control-button active" id="toggle-lights">Punctual Lights</div>
                 <div class="control-button active" id="toggle-animation">Animation</div>
                 <div class="control-button active" id="toggle-environment">Environment</div>
-                <div class="control-button" id="toggle-grid">Grid</div>
-            </div>
-            <div class="option-row">
-                <label for="dark-mode-toggle">Dark Mode</label>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="dark-mode-toggle">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            <div class="option-row">
-                <label for="auto-place-toggle">Auto-place in AR</label>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="auto-place-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
             </div>
         </div>
         
@@ -508,18 +330,6 @@
     <button id="exit-ar">✕</button>
     <div class="ar-instructions">Move your device to detect surfaces</div>
     
-    <div id="recording-indicator">● REC</div>
-    
-    <div class="ar-controls">
-        <button id="ar-scale-up">+</button>
-        <button id="ar-scale-down">-</button>
-        <button id="ar-rotate-left">↺</button>
-        <button id="ar-rotate-right">↻</button>
-        <button id="take-screenshot">📷</button>
-        <button id="start-recording">🔴</button>
-        <button id="stop-recording" style="display: none;">⏹️</button>
-    </div>
-    
     <div id="loading" class="loading" style="display: none;">
         <h3>Loading Model...</h3>
         <p id="loading-status">Please wait</p>
@@ -541,15 +351,11 @@
         let isPunctualLights = true;
         let isAnimationEnabled = true;
         let isEnvironmentEnabled = true;
-        let isGridVisible = false;
-        let isDarkMode = false;
         let exposure = 1.06;
         let isSidebarVisible = true;
         let isModelLoaded = false;
         let lights = [];
         let envMap = null;
-        let grid = null;
-        let autoPlace = true;
         
         let arSupported = false;
         let arSession = null;
@@ -560,21 +366,6 @@
         let reticle = null;
         let currentBuffer = null;
         let currentFileName = null;
-        
-        let savedCameraPosition = new THREE.Vector3();
-        let savedCameraTarget = new THREE.Vector3();
-        let initialCameraPosition = null;
-        let initialCameraTarget = new THREE.Vector3(0, 0, 0);
-        
-        let mediaRecorder = null;
-        let recordedChunks = [];
-        let isRecording = false;
-        
-        let arScaleFactor = 1.0;
-        let arRotationY = 0;
-        let lastTouchDistance = 0;
-        let isDragging = false;
-        let lastTouchPosition = { x: 0, y: 0 };
         
         function init() {
             scene = new THREE.Scene();
@@ -590,21 +381,18 @@
             
             renderer = new THREE.WebGLRenderer({ 
                 antialias: true,
-                alpha: true,
-                preserveDrawingBuffer: true
+                alpha: true
             });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.outputEncoding = THREE.sRGBEncoding;
             renderer.shadowMap.enabled = true;
-            renderer.setClearColor(0x000000, 0);
+            renderer.setClearColor(0xffffff, 1);
             renderer.toneMappingExposure = exposure;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             renderer.xr.enabled = true;
             
             document.getElementById('canvas-container').appendChild(renderer.domElement);
-            
-            setupGrid();
             
             loadEnvironmentMap();
             
@@ -614,11 +402,6 @@
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.autoRotate = false;
-            controls.enablePan = false;
-            controls.minPolarAngle = 0.1;
-            controls.maxPolarAngle = Math.PI - 0.1;
-            controls.minDistance = 0.5;
-            controls.maxDistance = 50;
             
             clock = new THREE.Clock();
             
@@ -631,21 +414,9 @@
             animate();
         }
         
-        function setupGrid() {
-            grid = new THREE.GridHelper(20, 20, 0x888888, 0x444444);
-            grid.position.y = -0.01;
-            grid.visible = false;
-            scene.add(grid);
-        }
-        
         function checkARSupport() {
             if ('xr' in navigator) {
-                const sessionInit = {
-                    optionalFeatures: ['dom-overlay'],
-                    domOverlay: { root: document.getElementById('ar-overlay') }
-                };
-                
-                navigator.xr.isSessionSupported('immersive-ar', sessionInit).then((supported) => {
+                navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
                     arSupported = supported;
                     if (supported) {
                         document.getElementById('ar-section').style.display = 'block';
@@ -770,11 +541,9 @@
             document.getElementById('toggle-lights').addEventListener('click', togglePunctualLights);
             document.getElementById('toggle-animation').addEventListener('click', toggleAnimation);
             document.getElementById('toggle-environment').addEventListener('click', toggleEnvironment);
-            document.getElementById('toggle-grid').addEventListener('click', toggleGrid);
-            document.getElementById('dark-mode-toggle').addEventListener('change', toggleDarkMode);
-            document.getElementById('auto-place-toggle').addEventListener('change', toggleAutoPlace);
             
             document.getElementById('animation-select').addEventListener('change', selectAnimation);
+            
             document.getElementById('camera-select').addEventListener('change', selectCamera);
             
             document.querySelector('.toggle-sidebar').addEventListener('click', toggleSidebar);
@@ -783,38 +552,6 @@
             document.getElementById('ar-button').addEventListener('click', enterAR);
             document.getElementById('exit-ar').addEventListener('click', exitAR);
             document.getElementById('place-button').addEventListener('click', placeModel);
-            
-            document.getElementById('take-screenshot').addEventListener('click', takeScreenshot);
-            document.getElementById('start-recording').addEventListener('click', startRecording);
-            document.getElementById('stop-recording').addEventListener('click', stopRecording);
-            
-            document.getElementById('ar-scale-up').addEventListener('click', () => {
-                if (modelPlaced) {
-                    scaleARModel(1.2);
-                }
-            });
-            
-            document.getElementById('ar-scale-down').addEventListener('click', () => {
-                if (modelPlaced) {
-                    scaleARModel(0.8);
-                }
-            });
-            
-            document.getElementById('ar-rotate-left').addEventListener('click', () => {
-                if (modelPlaced) {
-                    rotateARModel(-Math.PI / 8);
-                }
-            });
-            
-            document.getElementById('ar-rotate-right').addEventListener('click', () => {
-                if (modelPlaced) {
-                    rotateARModel(Math.PI / 8);
-                }
-            });
-        }
-        
-        function toggleAutoPlace() {
-            autoPlace = document.getElementById('auto-place-toggle').checked;
         }
         
         function handleFileSelect(file) {
@@ -1029,87 +766,6 @@
             });
         }
         
-        function toggleGrid() {
-            isGridVisible = !isGridVisible;
-            document.getElementById('toggle-grid').classList.toggle('active', isGridVisible);
-            
-            if (grid) {
-                grid.visible = isGridVisible;
-            }
-        }
-        
-        function toggleDarkMode() {
-            isDarkMode = !isDarkMode;
-            document.body.classList.toggle('dark-mode', isDarkMode);
-            
-            if (isDarkMode) {
-                scene.background = new THREE.Color(0x000000);
-            } else {
-                scene.background = new THREE.Color(0xffffff);
-            }
-        }
-        
-        function takeScreenshot() {
-            if (!isModelLoaded) return;
-            
-            const link = document.createElement('a');
-            link.download = `${currentFileName || 'model'}-screenshot.png`;
-            link.href = renderer.domElement.toDataURL('image/png');
-            link.click();
-        }
-        
-        function startRecording() {
-            if (!arSession || !modelPlaced) return;
-            
-            document.getElementById('start-recording').style.display = 'none';
-            document.getElementById('stop-recording').style.display = 'inline-flex';
-            document.getElementById('recording-indicator').style.display = 'block';
-            
-            recordedChunks = [];
-            
-            const canvas = renderer.domElement;
-            const stream = canvas.captureStream(30);
-            
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
-            
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
-                    recordedChunks.push(e.data);
-                }
-            };
-            
-            mediaRecorder.onstop = () => {
-                saveRecording();
-            };
-            
-            mediaRecorder.start();
-            isRecording = true;
-        }
-        
-        function stopRecording() {
-            if (!isRecording || !mediaRecorder) return;
-            
-            mediaRecorder.stop();
-            isRecording = false;
-            
-            document.getElementById('start-recording').style.display = 'inline-flex';
-            document.getElementById('stop-recording').style.display = 'none';
-            document.getElementById('recording-indicator').style.display = 'none';
-        }
-        
-        function saveRecording() {
-            const blob = new Blob(recordedChunks, { type: 'video/webm' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.download = `${currentFileName || 'ar-recording'}.webm`;
-            link.href = url;
-            link.click();
-            
-            setTimeout(() => {
-                URL.revokeObjectURL(url);
-            }, 100);
-        }
-        
         function toggleAnimation() {
             isAnimationEnabled = !isAnimationEnabled;
             document.getElementById('toggle-animation').classList.toggle('active', isAnimationEnabled);
@@ -1119,26 +775,6 @@
                     currentAnimationAction.play();
                 } else {
                     currentAnimationAction.stop();
-                }
-            }
-            
-            if (modelPlaced && arSession) {
-                const arModel = scene.children.find(obj => obj.userData && obj.userData.isARModel);
-                if (arModel) {
-                    if (isAnimationEnabled) {
-                        if (!arModel.userData.mixer && animationActions.length > 0) {
-                            const activeAnimIndex = parseInt(document.getElementById('animation-select').value);
-                            if (activeAnimIndex >= 0 && activeAnimIndex < animationActions.length) {
-                                const arMixer = new THREE.AnimationMixer(arModel);
-                                const clip = animationActions[activeAnimIndex]._clip;
-                                const action = arMixer.clipAction(clip);
-                                action.play();
-                                arModel.userData.mixer = arMixer;
-                            }
-                        }
-                    } else if (arModel.userData.mixer) {
-                        arModel.userData.mixer.stopAllAction();
-                    }
                 }
             }
         }
@@ -1218,40 +854,25 @@
         function enterAR() {
             if (!arSupported || !isModelLoaded) return;
             
-            savedCameraPosition.copy(camera.position);
-            if (controls.target) {
-                savedCameraTarget.copy(controls.target);
-            }
-            
-            const sessionInit = {
+            navigator.xr.requestSession('immersive-ar', {
                 requiredFeatures: ['hit-test'],
                 optionalFeatures: ['dom-overlay'],
                 domOverlay: { root: document.getElementById('ar-overlay') }
-            };
-            
-            navigator.xr.requestSession('immersive-ar', sessionInit)
-                .then(onARSessionStarted)
-                .catch(error => {
-                    console.error('Error starting AR session:', error);
-                    alert('Failed to start AR session. Make sure you have granted camera permissions.');
-                });
+            }).then(onARSessionStarted)
+            .catch(error => {
+                console.error('Error starting AR session:', error);
+                alert('Failed to start AR session. Make sure you have granted camera permissions.');
+            });
         }
         
         function onARSessionStarted(session) {
             arSession = session;
             
-            if (autoPlace) {
-                document.getElementById('ar-overlay').style.display = 'none';
-            } else {
-                document.getElementById('ar-overlay').style.display = 'flex';
-                document.getElementById('place-button').style.display = 'block';
-            }
-            
+            document.getElementById('ar-overlay').style.display = 'flex';
+            document.getElementById('place-button').style.display = 'block';
             document.getElementById('exit-ar').style.display = 'block';
             document.querySelector('.ar-instructions').style.display = 'block';
             document.body.classList.add('ar-mode');
-            
-            scene.background = null;
             
             renderer.xr.setReferenceSpaceType('local');
             renderer.xr.setSession(session);
@@ -1263,8 +884,6 @@
             }
             
             modelPlaced = false;
-            arScaleFactor = 1.0;
-            arRotationY = 0;
             
             session.requestReferenceSpace('viewer').then((referenceSpace) => {
                 session.requestHitTestSource({ space: referenceSpace }).then((source) => {
@@ -1282,92 +901,6 @@
                 arModel.scale.set(0.5, 0.5, 0.5);
                 arModel.position.set(0, 0, 0);
                 arModel.userData.isARModel = true;
-                
-                if (animationActions.length > 0 && isAnimationEnabled) {
-                    const activeAnimIndex = parseInt(document.getElementById('animation-select').value);
-                    if (activeAnimIndex >= 0 && activeAnimIndex < animationActions.length) {
-                        const arMixer = new THREE.AnimationMixer(arModel);
-                        const clip = animationActions[activeAnimIndex]._clip;
-                        const action = arMixer.clipAction(clip);
-                        action.play();
-                        arModel.userData.mixer = arMixer;
-                    }
-                }
-            }
-            
-            document.querySelector('.ar-controls').style.display = 'flex';
-            
-            session.addEventListener('select', onARSelect);
-            
-            setupARGestureRecognizers();
-        }
-        
-        function setupARGestureRecognizers() {
-            const canvas = renderer.domElement;
-            
-            canvas.addEventListener('touchstart', (event) => {
-                if (!modelPlaced || !arSession) return;
-                
-                if (event.touches.length === 1) {
-                    isDragging = true;
-                    lastTouchPosition.x = event.touches[0].clientX;
-                    lastTouchPosition.y = event.touches[0].clientY;
-                } else if (event.touches.length === 2) {
-                    const dx = event.touches[0].clientX - event.touches[1].clientX;
-                    const dy = event.touches[0].clientY - event.touches[1].clientY;
-                    lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
-                }
-            });
-            
-            canvas.addEventListener('touchmove', (event) => {
-                if (!modelPlaced || !arSession) return;
-                event.preventDefault();
-                
-                if (event.touches.length === 1 && isDragging) {
-                    const deltaX = event.touches[0].clientX - lastTouchPosition.x;
-                    lastTouchPosition.x = event.touches[0].clientX;
-                    lastTouchPosition.y = event.touches[0].clientY;
-                    
-                    rotateARModel(deltaX * 0.01);
-                } else if (event.touches.length === 2) {
-                    const dx = event.touches[0].clientX - event.touches[1].clientX;
-                    const dy = event.touches[0].clientY - event.touches[1].clientY;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    const scaleFactor = distance / lastTouchDistance;
-                    lastTouchDistance = distance;
-                    
-                    scaleARModel(scaleFactor);
-                }
-            });
-            
-            canvas.addEventListener('touchend', () => {
-                isDragging = false;
-            });
-        }
-        
-        function onARSelect(event) {
-            if (!modelPlaced) {
-                placeModel();
-            }
-        }
-        
-        function scaleARModel(factor) {
-            arScaleFactor *= factor;
-            arScaleFactor = Math.max(0.1, Math.min(arScaleFactor, 5.0));
-            
-            const arModel = scene.children.find(obj => obj.userData && obj.userData.isARModel);
-            if (arModel) {
-                arModel.scale.set(0.5 * arScaleFactor, 0.5 * arScaleFactor, 0.5 * arScaleFactor);
-            }
-        }
-        
-        function rotateARModel(angle) {
-            arRotationY += angle;
-            
-            const arModel = scene.children.find(obj => obj.userData && obj.userData.isARModel);
-            if (arModel) {
-                arModel.rotation.y = arRotationY;
             }
         }
         
@@ -1376,14 +909,7 @@
             document.getElementById('place-button').style.display = 'none';
             document.getElementById('exit-ar').style.display = 'none';
             document.querySelector('.ar-instructions').style.display = 'none';
-            document.querySelector('.ar-controls').style.display = 'none';
             document.body.classList.remove('ar-mode');
-            
-            if (isDarkMode) {
-                scene.background = new THREE.Color(0x000000);
-            } else {
-                scene.background = new THREE.Color(0xffffff);
-            }
             
             if (arHitTestSource) {
                 arHitTestSource.cancel();
@@ -1401,16 +927,6 @@
             }
             
             arSession = null;
-            
-            if (isRecording) {
-                stopRecording();
-            }
-            
-            if (initialCameraPosition) {
-                camera.position.copy(initialCameraPosition);
-                controls.target.copy(initialCameraTarget);
-                controls.update();
-            }
         }
         
         function exitAR() {
@@ -1430,22 +946,7 @@
                 modelPlaced = true;
                 
                 document.getElementById('place-button').style.display = 'none';
-                document.getElementById('ar-overlay').style.display = 'none';
-                document.querySelector('.ar-instructions').style.display = 'none';
-                
-                if (mixer && isAnimationEnabled) {
-                    const newMixer = new THREE.AnimationMixer(arModel);
-                    
-                    if (animationActions.length > 0) {
-                        const activeAnimIndex = parseInt(document.getElementById('animation-select').value);
-                        if (activeAnimIndex >= 0 && activeAnimIndex < animationActions.length) {
-                            const clip = animationActions[activeAnimIndex]._clip;
-                            const newAction = newMixer.clipAction(clip);
-                            newAction.play();
-                            arModel.userData.mixer = newMixer;
-                        }
-                    }
-                }
+                document.querySelector('.ar-instructions').textContent = 'Model placed. You can walk around it.';
             }
         }
         
@@ -1473,20 +974,13 @@
         function render(timestamp, frame) {
             if (controls) controls.update();
             
-            if (mixer && isAnimationEnabled && !arSession) {
+            if (mixer && isAnimationEnabled) {
                 mixer.update(clock.getDelta());
             }
             
-            const delta = clock.getDelta();
-            
-            scene.traverse((object) => {
-                if (object.userData && object.userData.mixer) {
-                    object.userData.mixer.update(delta);
-                }
-            });
-            
             if (frame && arSession) {
                 const referenceSpace = renderer.xr.getReferenceSpace();
+                const session = renderer.xr.getSession();
                 
                 if (arHitTestSource && !modelPlaced) {
                     const hitTestResults = frame.getHitTestResults(arHitTestSource);
@@ -1498,13 +992,8 @@
                         if (pose) {
                             reticle.visible = true;
                             reticle.matrix.fromArray(pose.transform.matrix);
-                            
-                            if (autoPlace) {
-                                placeModel();
-                            } else {
-                                document.getElementById('place-button').style.opacity = '1';
-                                document.getElementById('place-button').disabled = false;
-                            }
+                            document.getElementById('place-button').style.opacity = '1';
+                            document.getElementById('place-button').disabled = false;
                         }
                     } else {
                         reticle.visible = false;
@@ -1523,13 +1012,15 @@
         
         function adjustForMobile() {
             if (isMobile()) {
-                document.querySelector('.sidebar').style.width = '240px';
+                document.querySelector('.sidebar').style.width = '100%';
+                document.querySelector('.sidebar').style.height = 'auto';
+                document.querySelector('.sidebar').style.maxHeight = '50%';
                 document.querySelector('.sidebar').style.bottom = '0';
-                document.querySelector('.sidebar').style.top = '0';
+                document.querySelector('.sidebar').style.top = 'auto';
                 document.body.classList.add('sidebar-hidden');
                 
-                document.querySelector('.toggle-sidebar').style.bottom = 'auto';
-                document.querySelector('.toggle-sidebar').style.top = '10px';
+                document.querySelector('.toggle-sidebar').style.bottom = '10px';
+                document.querySelector('.toggle-sidebar').style.top = 'auto';
                 document.querySelector('.toggle-sidebar').style.right = '10px';
             }
         }
