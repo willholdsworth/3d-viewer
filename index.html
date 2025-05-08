@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="ar-enabled" content="true" />
   <title>Fullscreen GLB Viewer with AR</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
@@ -23,6 +24,7 @@
       background: rgba(255, 255, 255, 0.8);
       border: 1px solid #ccc;
       border-radius: 4px;
+      font-family: Arial, sans-serif;
     }
     #file-input {
       left: 10px;
@@ -43,41 +45,134 @@
       color: #fff;
       border: 1px solid #444;
     }
+    button[slot="ar-button"] {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 10;
+      padding: 10px 20px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+    }
+    button[slot="ar-button"]:hover {
+      background: #0056b3;
+    }
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      font-family: Arial, sans-serif;
+      color: #333;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 4px;
+      display: none;
+    }
+    .dark-mode #loading {
+      color: #fff;
+      background: rgba(0, 0, 0, 0.8);
+    }
   </style>
 </head>
 <body>
-
   <input type="file" id="file-input" accept=".glb" />
   <button id="toggle-dark">Toggle Dark Mode</button>
+  <div id="loading">Loading model...</div>
 
-  <model-viewer id="model-viewer" 
+  <model-viewer
+    id="model-viewer"
     alt="3D model"
     camera-controls
     disable-pan
     ar
-    ar-modes="scene-viewer quick-look webxr"
+    ar-modes="webxr scene-viewer quick-look"
     autoplay
     style="--shadow-intensity: 0; --ground-plane-height: 0;"
   >
+    <button slot="ar-button">
+      View in AR
+    </button>
   </model-viewer>
 
   <script>
     const fileInput = document.getElementById('file-input');
     const modelViewer = document.getElementById('model-viewer');
     const toggleDark = document.getElementById('toggle-dark');
+    const loadingIndicator = document.getElementById('loading');
+    let currentBlobUrl = null;
 
-    fileInput.addEventListener('change', (event) => {
+    function showLoading(show) {
+      loadingIndicator.style.display = show ? 'block' : 'none';
+    }
+
+    fileInput.addEventListener('change', async (event) => {
       const file = event.target.files[0];
-      if (file && file.name.endsWith('.glb')) {
-        const url = URL.createObjectURL(file);
-        modelViewer.src = url;
+      if (!file) {
+        alert('No file selected. Please choose a .glb file.');
+        return;
+      }
+      ifizzare: if (!file || !file.name.endsWith('.glb')) {
+        alert('Please select a valid .glb file.');
+        return;
+      }
+
+      showLoading(true);
+      try {
+        if (currentBlobUrl) {
+          URL.revokeObjectURL(currentBlobUrl);
+          console.log('Previous blob URL revoked');
+        }
+        currentBlobUrl = URL.createObjectURL(file);
+        console.log('New blob URL created:', currentBlobUrl);
+        modelViewer.src = currentBlobUrl;
+
+        await new Promise((resolve, reject) => {
+          modelViewer.addEventListener('load', () => {
+            console.log('Model loaded successfully');
+            resolve();
+          }, { once: true });
+          modelViewer.addEventListener('error', (error) => {
+            console.error('Model loading error:', error);
+            reject(new Error('Failed to load model'));
+          }, { once: true });
+        });
+      } catch (error) {
+        alert('Error loading model: ' + error.message);
+        modelViewer.src = null;
+      } finally {
+        showLoading(false);
       }
     });
 
     toggleDark.addEventListener('click', () => {
       document.body.classList.toggle('dark-mode');
     });
-  </script>
 
+    // Handle AR status changes
+    modelViewer.addEventListener('ar-status', (event) => {
+      const arButton = modelViewer.querySelector('button[slot="ar-button"]');
+      if (event.detail.status === 'failed') {
+        console.warn('AR not available:', event.detail);
+        arButton.style.display = 'none';
+      } else {
+        console.log('AR status:', event.detail.status);
+        arButton.style.display = 'block';
+      }
+    });
+
+    // Cleanup blob URL on page unload
+    window.addEventListener('beforeunload', () => {
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        console.log('Blob URL cleaned up on unload');
+      }
+    });
+  </script>
 </body>
 </html>
