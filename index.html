@@ -372,6 +372,9 @@
         let currentBuffer = null;
         let currentFileName = null;
         
+        let savedCameraPosition = new THREE.Vector3();
+        let savedCameraTarget = new THREE.Vector3();
+        
         function init() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0xffffff);
@@ -386,17 +389,17 @@
             
             renderer = new THREE.WebGLRenderer({ 
                 antialias: true,
-                alpha: true
+                alpha: true,
+                preserveDrawingBuffer: true
             });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.outputEncoding = THREE.sRGBEncoding;
             renderer.shadowMap.enabled = true;
-            renderer.setClearColor(0xffffff, 1);
+            renderer.setClearColor(0x000000, 0);
             renderer.toneMappingExposure = exposure;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             renderer.xr.enabled = true;
-            renderer.autoClear = true;
             
             document.getElementById('canvas-container').appendChild(renderer.domElement);
             
@@ -422,7 +425,12 @@
         
         function checkARSupport() {
             if ('xr' in navigator) {
-                navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
+                const sessionInit = {
+                    optionalFeatures: ['dom-overlay'],
+                    domOverlay: { root: document.getElementById('ar-overlay') }
+                };
+                
+                navigator.xr.isSessionSupported('immersive-ar', sessionInit).then((supported) => {
                     arSupported = supported;
                     if (supported) {
                         document.getElementById('ar-section').style.display = 'block';
@@ -860,15 +868,23 @@
         function enterAR() {
             if (!arSupported || !isModelLoaded) return;
             
-            navigator.xr.requestSession('immersive-ar', {
+            savedCameraPosition.copy(camera.position);
+            if (controls.target) {
+                savedCameraTarget.copy(controls.target);
+            }
+            
+            const sessionInit = {
                 requiredFeatures: ['hit-test'],
                 optionalFeatures: ['dom-overlay'],
                 domOverlay: { root: document.getElementById('ar-overlay') }
-            }).then(onARSessionStarted)
-            .catch(error => {
-                console.error('Error starting AR session:', error);
-                alert('Failed to start AR session. Make sure you have granted camera permissions.');
-            });
+            };
+            
+            navigator.xr.requestSession('immersive-ar', sessionInit)
+                .then(onARSessionStarted)
+                .catch(error => {
+                    console.error('Error starting AR session:', error);
+                    alert('Failed to start AR session. Make sure you have granted camera permissions.');
+                });
         }
         
         function onARSessionStarted(session) {
@@ -937,6 +953,14 @@
             }
             
             arSession = null;
+            
+            camera.position.copy(savedCameraPosition);
+            controls.target.copy(savedCameraTarget);
+            controls.update();
+            
+            setTimeout(() => {
+                centerModel();
+            }, 100);
         }
         
         function exitAR() {
