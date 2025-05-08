@@ -1,346 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model Viewer with AR</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f5f5f5;
-            color: #444;
-            overflow: hidden;
-            display: flex;
-            height: 100vh;
-        }
-        #model-viewer-container {
-            flex: 1;
-            position: relative;
-            background: #ffffff;
-            z-index: 1;
-        }
-        model-viewer {
-            width: 100%;
-            height: 100%;
-            background: #fff;
-            --poster-color: transparent;
-        }
-        .sidebar {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 300px;
-            height: 100%;
-            background: #ffffff;
-            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
-            z-index: 2;
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s ease;
-        }
-        .sidebar-hidden .sidebar {
-            transform: translateX(300px);
-        }
-        .toggle-sidebar {
-            position: absolute;
-            top: 10px;
-            right: 310px;
-            z-index: 3;
-            background: white;
-            border-radius: 4px 0 0 4px;
-            padding: 10px;
-            cursor: pointer;
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-            transition: right 0.3s ease;
-        }
-        .sidebar-hidden .toggle-sidebar {
-            right: 10px;
-        }
-        .header {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 20px;
-            font-weight: 600;
-        }
-        .header p {
-            margin: 0;
-            font-size: 14px;
-            color: #666;
-        }
-        .section {
-            border-top: 1px solid #eee;
-            margin-top: 15px;
-            padding-top: 15px;
-        }
-        .section h2 {
-            margin: 0 0 10px;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .file-drop {
-            border: 2px dashed #ccc;
-            border-radius: 4px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            margin-bottom: 15px;
-            transition: all 0.2s;
-        }
-        .file-drop:hover, .file-drop.dragover {
-            border-color: #2196f3;
-            background-color: rgba(33, 150, 243, 0.05);
-        }
-        .file-drop p {
-            margin: 0;
-            font-size: 14px;
-        }
-        button {
-            background-color: #2196f3;
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            text-align: center;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #0b7dda;
-        }
-        input[type="file"] {
-            display: none;
-        }
-        #ar-button {
-            background-color: #4285f4;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            font-size: 16px;
-            font-weight: 500;
-            display: none;
-        }
-        #ar-button:hover {
-            background-color: #3267d6;
-        }
-        #ar-prompt {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-            display: none;
-        }
-        #ar-prompt img {
-            width: 100px;
-            height: auto;
-        }
-        .progress-bar {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 4px;
-            background: rgba(0, 0, 0, 0.1);
-            z-index: 10;
-        }
-        .progress-bar.hide {
-            display: none;
-        }
-        .update-bar {
-            height: 100%;
-            background: #4285f4;
-            width: 0%;
-            transition: width 0.3s;
-        }
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                max-height: 50%;
-                bottom: 0;
-                top: auto;
-            }
-            .sidebar-hidden .sidebar {
-                transform: translateY(100%);
-            }
-            .toggle-sidebar {
-                right: 10px;
-                bottom: 10px;
-                top: auto;
-                border-radius: 4px;
-            }
-            .sidebar-hidden .toggle-sidebar {
-                right: 10px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fullscreen GLB Viewer with AR</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: #fff;
+      transition: background 0.3s ease;
+    }
+    #file-input, #toggle-dark {
+      position: absolute;
+      top: 10px;
+      z-index: 10;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #file-input {
+      left: 10px;
+    }
+    #toggle-dark {
+      right: 10px;
+      cursor: pointer;
+    }
+    model-viewer {
+      width: 100%;
+      height: 100%;
+    }
+    .dark-mode {
+      background: #000;
+    }
+    .dark-mode #file-input, .dark-mode #toggle-dark {
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      border: 1px solid #444;
+    }
+  </style>
 </head>
 <body>
-    <div class="toggle-sidebar">≡</div>
-    <div class="sidebar">
-        <div class="header">
-            <h1>3D Model Viewer</h1>
-            <p>Upload and view your 3D models in 3D or AR</p>
-        </div>
-        <div class="section">
-            <h2>Load Model</h2>
-            <div id="file-drop" class="file-drop">
-                <p>Drop glTF, GLB, or USDZ file here</p>
-                <p>or</p>
-                <input type="file" id="file-input" accept=".glb,.gltf,.usdz">
-                <button id="file-select-button">Select File</button>
-            </div>
-        </div>
-    </div>
-    <div id="model-viewer-container">
-        <model-viewer
-            id="model-viewer"
-            src=""
-            ar
-            ar-modes="scene-viewer webxr quick-look"
-            ar-scale="auto"
-            ar-placement="floor"
-            camera-controls
-            disable-pan
-            interaction-policy="allow-when-focused"
-            tone-mapping="neutral"
-            shadow-intensity="1"
-            autoplay
-            poster="">
-            <div class="progress-bar" slot="progress-bar">
-                <div class="update-bar"></div>
-            </div>
-            <button slot="ar-button" id="ar-button">View in your space</button>
-            <div id="ar-prompt">
-                <img src="https://modelviewer.dev/shared-assets/icons/hand.png">
-            </div>
-            <div slot="poster" style="text-align: center; padding: 20px;">
-                <p>Please upload a 3D model (.glb, .gltf, or .usdz) to view.</p>
-            </div>
-        </model-viewer>
-    </div>
 
-    <script type="module">
-        import 'https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js';
+  <input type="file" id="file-input" accept=".glb" />
+  <button id="toggle-dark">Toggle Dark Mode</button>
 
-        const sidebar = document.querySelector('.sidebar');
-        const toggleSidebar = document.querySelector('.toggle-sidebar');
-        const fileInput = document.getElementById('file-input');
-        const fileSelectButton = document.getElementById('file-select-button');
-        const fileDropArea = document.getElementById('file-drop');
-        const modelViewer = document.getElementById('model-viewer');
-        const progressBar = document.querySelector('.progress-bar');
-        const updateBar = document.querySelector('.update-bar');
-        const arButton = document.getElementById('ar-button');
-        const arPrompt = document.getElementById('ar-prompt');
+  <model-viewer id="model-viewer" 
+    alt="3D model"
+    camera-controls
+    disable-pan
+    ar
+    ar-modes="scene-viewer quick-look webxr"
+    autoplay
+    style="--shadow-intensity: 0; --ground-plane-height: 0;"
+  >
+  </model-viewer>
 
-        toggleSidebar.addEventListener('click', () => {
-            document.body.classList.toggle('sidebar-hidden');
-        });
+  <script>
+    const input = document.getElementById('file-input');
+    const modelViewer = document.getElementById('model-viewer');
+    const toggleDark = document.getElementById('toggle-dark');
 
-        fileSelectButton.addEventListener('click', () => {
-            fileInput.click();
-        });
+    input.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file && file.name.endsWith('.glb')) {
+        const url = URL.createObjectURL(file);
+        modelViewer.src = url;
+      } else {
+        alert('Please upload a valid .glb file.');
+      }
+    });
 
-        fileDropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            fileDropArea.classList.add('dragover');
-        });
+    toggleDark.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+  </script>
 
-        fileDropArea.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            fileDropArea.classList.remove('dragover');
-        });
-
-        fileDropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            fileDropArea.classList.remove('dragover');
-            if (e.dataTransfer.files.length) {
-                handleFile(e.dataTransfer.files[0]);
-            }
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length) {
-                handleFile(e.target.files[0]);
-            }
-        });
-
-        function handleFile(file) {
-            if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf') || file.name.endsWith('.usdz'))) {
-                const url = URL.createObjectURL(file);
-                modelViewer.src = url;
-                if (file.name.endsWith('.usdz')) {
-                    modelViewer.setAttribute('ios-src', url);
-                } else {
-                    modelViewer.removeAttribute('ios-src');
-                }
-                modelViewer.style.display = 'block';
-                modelViewer.poster = '';
-
-                modelViewer.addEventListener('load', () => {
-                    const animations = modelViewer.availableAnimations;
-                    if (animations && animations.length > 0) {
-                        modelViewer.animationName = animations[0];
-                        modelViewer.play({ repetitions: Infinity });
-                    } else {
-                        modelViewer.animationName = '';
-                    }
-
-                    modelViewer.setAttribute('ar', '');
-                    modelViewer.setAttribute('ar-modes', 'scene-viewer webxr quick-look');
-                    modelViewer.setAttribute('ar-scale', 'auto');
-                    modelViewer.setAttribute('ar-placement', 'floor');
-
-                    // Show AR button if AR is supported
-                    if (modelViewer.canActivateAR) {
-                        arButton.style.display = 'block';
-                    }
-                }, { once: true });
-            } else {
-                alert('Please upload a valid .glb, .gltf, or .usdz file.');
-            }
-        }
-
-        modelViewer.addEventListener('progress', (event) => {
-            const progress = event.detail.totalProgress;
-            updateBar.style.width = `${progress * 100}%`;
-            progressBar.classList.toggle('hide', progress === 1);
-        });
-
-        modelViewer.addEventListener('ar-status', (event) => {
-            console.log('AR status:', event.detail.status);
-            arPrompt.style.display = event.detail.status === 'session-started' ? 'block' : 'none';
-        });
-
-        function adjustForMobile() {
-            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                document.body.classList.add('sidebar-hidden');
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', adjustForMobile);
-    </script>
 </body>
 </html>
