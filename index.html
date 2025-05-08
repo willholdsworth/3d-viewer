@@ -35,6 +35,7 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
+            transition: transform 0.3s ease;
         }
         .header {
             margin-bottom: 20px;
@@ -155,15 +156,13 @@
             padding: 10px;
             cursor: pointer;
             box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
         }
         .sidebar-hidden .sidebar {
-            transform: translateX(300px);
+            transform: translateX(100%);
         }
         .sidebar-hidden .toggle-sidebar {
             right: 10px;
-        }
-        .sidebar, .toggle-sidebar {
-            transition: all 0.3s ease;
         }
         #ar-button {
             position: absolute;
@@ -251,6 +250,12 @@
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 1001;
             display: none;
+        }
+        
+        @media screen and (max-width: 767px) {
+            .sidebar {
+                width: 260px;
+            }
         }
     </style>
 </head>
@@ -391,6 +396,7 @@
             renderer.toneMappingExposure = exposure;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             renderer.xr.enabled = true;
+            renderer.autoClear = true;
             
             document.getElementById('canvas-container').appendChild(renderer.domElement);
             
@@ -874,6 +880,8 @@
             document.querySelector('.ar-instructions').style.display = 'block';
             document.body.classList.add('ar-mode');
             
+            scene.background = null;
+            
             renderer.xr.setReferenceSpaceType('local');
             renderer.xr.setSession(session);
             
@@ -910,6 +918,8 @@
             document.getElementById('exit-ar').style.display = 'none';
             document.querySelector('.ar-instructions').style.display = 'none';
             document.body.classList.remove('ar-mode');
+            
+            scene.background = new THREE.Color(0xffffff);
             
             if (arHitTestSource) {
                 arHitTestSource.cancel();
@@ -980,7 +990,6 @@
             
             if (frame && arSession) {
                 const referenceSpace = renderer.xr.getReferenceSpace();
-                const session = renderer.xr.getSession();
                 
                 if (arHitTestSource && !modelPlaced) {
                     const hitTestResults = frame.getHitTestResults(arHitTestSource);
@@ -1012,15 +1021,13 @@
         
         function adjustForMobile() {
             if (isMobile()) {
-                document.querySelector('.sidebar').style.width = '100%';
-                document.querySelector('.sidebar').style.height = 'auto';
-                document.querySelector('.sidebar').style.maxHeight = '50%';
+                document.querySelector('.sidebar').style.width = '240px';
                 document.querySelector('.sidebar').style.bottom = '0';
-                document.querySelector('.sidebar').style.top = 'auto';
+                document.querySelector('.sidebar').style.top = '0';
                 document.body.classList.add('sidebar-hidden');
                 
-                document.querySelector('.toggle-sidebar').style.bottom = '10px';
-                document.querySelector('.toggle-sidebar').style.top = 'auto';
+                document.querySelector('.toggle-sidebar').style.bottom = 'auto';
+                document.querySelector('.toggle-sidebar').style.top = '10px';
                 document.querySelector('.toggle-sidebar').style.right = '10px';
             }
         }
