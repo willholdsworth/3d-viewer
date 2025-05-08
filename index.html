@@ -15,7 +15,7 @@
       background: #fff;
       transition: background 0.3s ease;
     }
-    #file-input, #toggle-dark, #url-input {
+    #file-input, #toggle-dark {
       position: absolute;
       top: 10px;
       z-index: 10;
@@ -26,10 +26,6 @@
     }
     #file-input {
       left: 10px;
-    }
-    #url-input {
-      left: 180px;
-      width: 300px;
     }
     #toggle-dark {
       right: 10px;
@@ -42,7 +38,7 @@
     .dark-mode {
       background: #000;
     }
-    .dark-mode #file-input, .dark-mode #toggle-dark, .dark-mode #url-input {
+    .dark-mode #file-input, .dark-mode #toggle-dark {
       background: rgba(0, 0, 0, 0.8);
       color: #fff;
       border: 1px solid #444;
@@ -52,7 +48,6 @@
 <body>
 
   <input type="file" id="file-input" accept=".glb" />
-  <input type="text" id="url-input" placeholder="Paste GLB URL and press Enter" />
   <button id="toggle-dark">Toggle Dark Mode</button>
 
   <model-viewer id="model-viewer" 
@@ -68,7 +63,6 @@
 
   <script>
     const fileInput = document.getElementById('file-input');
-    const urlInput = document.getElementById('url-input');
     const modelViewer = document.getElementById('model-viewer');
     const toggleDark = document.getElementById('toggle-dark');
 
@@ -77,20 +71,6 @@
       if (file && file.name.endsWith('.glb')) {
         const url = URL.createObjectURL(file);
         modelViewer.src = url;
-        alert('Note: AR may not work with local file uploads. Use a public URL for full AR support.');
-      } else {
-        alert('Please upload a valid .glb file.');
-      }
-    });
-
-    urlInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        const url = urlInput.value.trim();
-        if (url.endsWith('.glb')) {
-          modelViewer.src = url;
-        } else {
-          alert('Please enter a valid .glb URL.');
-        }
       }
     });
 
