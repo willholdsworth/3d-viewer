@@ -86,15 +86,33 @@
       color: #fff;
       background: rgba(0, 0, 0, 0.8);
     }
+    #model-status {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      font-family: Arial, sans-serif;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .dark-mode #model-status {
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+    }
   </style>
 </head>
 <body>
   <input type="file" id="file-input" accept=".glb,.gltf" />
   <button id="toggle-dark">Toggle Dark Mode</button>
   <div id="loading">Loading model...</div>
+  <div id="model-status">Default model loaded. Upload your own model to replace it.</div>
 
   <model-viewer
     id="model-viewer"
+    src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
     alt="3D model"
     camera-controls
     disable-pan
@@ -103,7 +121,7 @@
     ar-placement="floor"
     autoplay
     environment-image="neutral"
-    shadow-intensity="0"
+    shadow-intensity="1"
   >
     <button slot="ar-button">
       View in AR
@@ -116,11 +134,26 @@
     const toggleDark = document.getElementById('toggle-dark');
     const arButton = modelViewer.querySelector('button[slot="ar-button"]');
     const loadingIndicator = document.getElementById('loading');
+    const modelStatus = document.getElementById('model-status');
     let currentBlobUrl = null;
+    let usingDefaultModel = true;
 
     function showLoading(show) {
       loadingIndicator.style.display = show ? 'block' : 'none';
     }
+
+    // Initial loading of default model
+    showLoading(true);
+    modelViewer.addEventListener('load', () => {
+      showLoading(false);
+      console.log('Default model loaded successfully');
+    }, { once: true });
+    
+    modelViewer.addEventListener('error', (error) => {
+      showLoading(false);
+      console.error('Default model loading error:', error);
+      modelStatus.textContent = 'Failed to load default model. Please upload a model.';
+    }, { once: true });
 
     fileInput.addEventListener('change', async (event) => {
       const file = event.target.files[0];
@@ -139,6 +172,7 @@
         currentBlobUrl = URL.createObjectURL(file);
         console.log('New blob URL created:', currentBlobUrl);
         modelViewer.src = currentBlobUrl;
+        usingDefaultModel = false;
 
         // Wait for model to load
         await new Promise((resolve, reject) => {
@@ -154,12 +188,21 @@
           setTimeout(() => reject(new Error('Model loading timed out')), 10000);
         });
 
+        modelStatus.textContent = `Custom model loaded: ${file.name}`;
+        
         // Warn about AR blob URL limitations
         console.log('Note: AR may not work with blob URLs in Scene Viewer or Quick Look. Consider hosting the model on a server.');
       } catch (error) {
         alert('Error loading model: ' + error.message);
         console.error('Error details:', error);
-        modelViewer.src = null;
+        if (usingDefaultModel) {
+          // Keep default model
+        } else {
+          // Try to restore default model
+          modelViewer.src = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
+          usingDefaultModel = true;
+          modelStatus.textContent = 'Error loading custom model. Default model restored.';
+        }
       } finally {
         showLoading(false);
       }
