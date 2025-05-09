@@ -99,14 +99,18 @@
     alt="3D model"
     camera-controls
     camera-orbit="0deg 75deg auto"
-	camera-target="0m 0m 0m"
-    min-camera-orbit="auto auto auto"
-    max-camera-orbit="auto auto auto"
+    camera-target="auto"
+    min-camera-orbit="auto auto 100%"
+    max-camera-orbit="auto auto 300%"
     field-of-view="50deg"
     disable-pan
     ar
     ar-modes="webxr scene-viewer quick-look"
     ar-placement="floor"
+    ar-scale="fixed"
+    interaction-prompt="none"
+    min-field-of-view="25deg"
+    max-field-of-view="60deg"
     autoplay
     environment-image="neutral"
     shadow-intensity="0"
@@ -140,9 +144,16 @@
     modelViewer.addEventListener('error', (error) => {
       showLoading(false);
       console.error('Default model loading error:', error);
-      modelStatus.textContent = 'Failed to load default model. Please upload a model.';
+      console.log('Failed to load default model. Please upload a model.');
     }, { once: true });
 
+    // Listen for AR mode activation
+    modelViewer.addEventListener('ar-status', (event) => {
+      if (event.detail.status === 'session-started') {
+        console.log('AR session started - scale is fixed');
+      }
+    });
+    
     fileInput.addEventListener('change', async (event) => {
       const file = event.target.files[0];
       if (!file || (!file.name.endsWith('.glb') && !file.name.endsWith('.gltf'))) {
@@ -176,8 +187,6 @@
           setTimeout(() => reject(new Error('Model loading timed out')), 10000);
         });
 
-
-        
         // Warn about AR blob URL limitations
         console.log('Note: AR may not work with blob URLs in Scene Viewer or Quick Look. Consider hosting the model on a server.');
       } catch (error) {
@@ -189,7 +198,6 @@
           // Try to restore default model
           modelViewer.src = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
           usingDefaultModel = true;
-
         }
       } finally {
         showLoading(false);
