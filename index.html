@@ -95,20 +95,21 @@
   <div id="loading">Loading model...</div>
   <model-viewer
     id="model-viewer"
-    src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+    src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/FlightHelmet/glTF-Binary/FlightHelmet.glb"
     alt="3D model"
     camera-controls
-    camera-orbit="0deg 75deg 150%"
-    min-camera-orbit="auto auto 100%"
-    max-camera-orbit="auto auto 400%"
-    field-of-view="30deg"
+    camera-orbit="0deg 75deg auto"
+	camera-target="0m 0m 0m"
+    min-camera-orbit="auto auto auto"
+    max-camera-orbit="auto auto auto"
+    field-of-view="50deg"
     disable-pan
     ar
     ar-modes="webxr scene-viewer quick-look"
     ar-placement="floor"
     autoplay
     environment-image="neutral"
-    shadow-intensity="1"
+    shadow-intensity="0"
   >
     <button slot="ar-button">
       View in AR
