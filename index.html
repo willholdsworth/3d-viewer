@@ -85,7 +85,7 @@
     .dark-mode #loading {
       color: #fff;
       background: rgba(0, 0, 0, 0.8);
-    BRA
+    }
     #status-message {
       position: absolute;
       top: 50px;
@@ -168,14 +168,14 @@
     modelViewer.addEventListener('load', () => {
       showLoading(false);
       if (usingDefaultModel && isIOS) {
-        showStatus('Duck GLB loaded. AR may work if the GLB is compatible. For best results, upload a USDZ file.');
+        showStatus('Duck GLB loaded. Click "View in AR" to try AR. If AR fails, upload a USDZ file.');
       }
     }, { once: true });
     
     modelViewer.addEventListener('error', (error) => {
       console.error('Model Viewer Error:', error);
       showLoading(false);
-      showStatus('Failed to load model: ' + (error.detail?.message || 'Unknown error') + '. Ensure the GLB is simple (single mesh, PNG/JPEG textures).');
+      showStatus('Failed to load model: ' + (error.detail?.message || 'Unknown error') + '. Try a simple GLB (single mesh, PNG/JPEG textures) or USDZ.');
     }, { once: true });
 
     modelViewer.addEventListener('ar-status', (event) => {
@@ -185,7 +185,7 @@
         }
       } else if (event.detail.status === 'failed') {
         arButton.classList.add('hidden');
-        showStatus('AR failed. Ensure the GLB is simple (single mesh, PNG/JPEG textures) or upload a USDZ file for iOS.');
+        showStatus('AR failed. Try a simple GLB (single mesh, PNG/JPEG textures) or upload a USDZ file for iOS.');
       } else if (event.detail.status === 'session-ended') {
         arButton.classList.remove('hidden');
       }
@@ -225,7 +225,7 @@
           modelViewer.src = currentBlobUrl;
           if (isIOS) {
             modelViewer.setAttribute('ios-src', currentBlobUrl);
-            showStatus('GLB loaded. For AR on iOS, ensure the GLB is simple (single mesh, PNG/JPEG textures) or upload a USDZ file.');
+            showStatus('GLB loaded. Click "View in AR" to try AR. If AR fails, try a simpler GLB or upload a USDZ file.');
           }
         }
         usingDefaultModel = false;
@@ -255,7 +255,7 @@
         }
         
       } catch (error) {
-        showStatus('Error loading model: ' + error.message + '. Ensure the GLB is simple or upload a USDZ file.');
+        showStatus('Error loading model: ' + error.message + '. Try a simple GLB or USDZ.');
         modelViewer.src = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb';
         if (isIOS) {
           modelViewer.setAttribute('ios-src', modelViewer.src);
