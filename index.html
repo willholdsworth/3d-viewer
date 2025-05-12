@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="ar-enabled" content="true" />
   <title>Fullscreen GLB Viewer with AR</title>
-  <script type="module" src="[invalid url, do not cite]
+  <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <style>
     html, body {
       margin: 0;
@@ -112,7 +112,7 @@
   
   <model-viewer
     id="model-viewer"
-    src="[invalid url, do not cite]
+    src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb"
     alt="3D model"
     camera-controls
     camera-orbit="50deg 75deg auto"
@@ -161,14 +161,6 @@
       setTimeout(() => {
         statusMessage.style.display = 'none';
       }, duration);
-    }
-
-    if (isIOS) {
-      modelViewer.setAttribute('quick-look-browsers', 'safari chrome');
-      modelViewer.setAttribute('ios-src', '[invalid url, do not cite]);
-      modelViewer.setAttribute('environment-image', 'neutral');
-      modelViewer.setAttribute('shadow-intensity', '1');
-      modelViewer.setAttribute('ar-status', 'not-presenting');
     }
 
     showLoading(true);
@@ -239,7 +231,7 @@
         
       } catch (error) {
         showStatus('Error loading model: ' + error.message);
-        modelViewer.src = "[invalid url, do not cite];
+        modelViewer.src = "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb";
         if (isIOS) {
           modelViewer.setAttribute('ios-src', modelViewer.getAttribute('src'));
         }
