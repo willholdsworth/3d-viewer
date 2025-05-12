@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="ar-enabled" content="true" />
-  <title>Fullscreen GLB Viewer with AR</title>
+  <title>Fullscreen GLB and USDZ Viewer with AR</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <style>
     html, body {
@@ -105,7 +105,7 @@
   </style>
 </head>
 <body>
-  <input type="file" id="file-input" accept=".glb" />
+  <input type="file" id="file-input" accept=".glb,.usdz" />
   <button id="toggle-dark">Toggle Dark Mode</button>
   <div id="loading">Loading model...</div>
   <div id="status-message"></div>
@@ -168,14 +168,14 @@
     modelViewer.addEventListener('load', () => {
       showLoading(false);
       if (usingDefaultModel && isIOS) {
-        showStatus('Duck GLB loaded. Click "View in AR" to try AR. If AR fails, simplify the GLB (single mesh, PNG/JPEG textures).');
+        showStatus('Duck GLB loaded. Click "View in AR" to try AR. For best iOS AR, use a USDZ file.');
       }
     }, { once: true });
     
     modelViewer.addEventListener('error', (error) => {
       console.error('Model Viewer Error:', error);
       showLoading(false);
-      showStatus('Failed to load model: ' + (error.detail?.message || 'Unknown error') + '. Use a simple GLB (single mesh, PNG/JPEG textures).');
+      showStatus('Failed to load model: ' + (error.detail?.message || 'Unknown error') + '. Use a simple GLB (single mesh, PNG/JPEG textures) or USDZ for iOS.');
     }, { once: true });
 
     modelViewer.addEventListener('ar-status', (event) => {
@@ -185,7 +185,7 @@
         }
       } else if (event.detail.status === 'failed') {
         arButton.classList.add('hidden');
-        showStatus('AR failed. Use a simple GLB (single mesh, PNG/JPEG textures) or try a different GLB.');
+        showStatus('AR failed. Use a simple GLB (single mesh, PNG/JPEG textures) or USDZ for iOS.');
       } else if (event.detail.status === 'session-ended') {
         arButton.classList.remove('hidden');
       }
@@ -193,8 +193,8 @@
     
     fileInput.addEventListener('change', async (event) => {
       const file = event.target.files[0];
-      if (!file || !file.name.endsWith('.glb')) {
-        showStatus('Please select a valid .glb file.');
+      if (!file || (!file.name.endsWith('.glb') && !file.name.endsWith('.usdz'))) {
+        showStatus('Please select a valid .glb or .usdz file.');
         return;
       }
 
@@ -204,13 +204,26 @@
           URL.revokeObjectURL(currentBlobUrl);
         }
         
-        const blob = new Blob([file], { type: 'model/gltf-binary' });
+        const isUsdz = file.name.endsWith('.usdz');
+        const mimeType = isUsdz ? 'model/vnd.usdz+zip' : 'model/gltf-binary';
+        const blob = new Blob([file], { type: mimeType });
         currentBlobUrl = URL.createObjectURL(blob);
         
-        modelViewer.src = currentBlobUrl;
-        if (isIOS) {
-          modelViewer.setAttribute('ios-src', currentBlobUrl);
-          showStatus('GLB loaded. Click "View in AR" to try AR. If AR fails, simplify the GLB (single mesh, PNG/JPEG textures).');
+        if (isUsdz) {
+          if (isIOS) {
+            modelViewer.setAttribute('ios-src', currentBlobUrl);
+            modelViewer.src = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb'; // Fallback for non-AR view
+            showStatus('USDZ loaded for iOS AR. Click "View in AR" to try it.');
+          } else {
+            showStatus('USDZ files are only supported on iOS devices. Please upload a GLB file.');
+            throw new Error('USDZ not supported on non-iOS devices');
+          }
+        } else {
+          modelViewer.src = currentBlobUrl;
+          if (isIOS) {
+            modelViewer.setAttribute('ios-src', currentBlobUrl);
+            showStatus('GLB loaded. Click "View in AR" to try AR. For best iOS AR, use a USDZ file.');
+          }
         }
         usingDefaultModel = false;
 
@@ -229,17 +242,17 @@
         });
 
         const hasAnimations = modelViewer.availableAnimations && modelViewer.availableAnimations.length > 0;
-        if (hasAnimations && !isIOS) {
+        if (hasAnimations && !isIOS && !isUsdz) {
           modelViewer.autoplay = true;
           if (modelViewer.availableAnimations.length > 0) {
             modelViewer.animationName = modelViewer.availableAnimations[0];
           }
         } else if (isIOS && hasAnimations) {
-          showStatus('Animations may not work in iOS AR. Simplify the GLB for best results.');
+          showStatus('Animations may not work in iOS AR. Use a simple GLB or USDZ for best results.');
         }
         
       } catch (error) {
-        showStatus('Error loading model: ' + error.message + '. Use a simple GLB (single mesh, PNG/JPEG textures).');
+        showStatus('Error loading model: ' + error.message + '. Use a simple GLB (single mesh, PNG/JPEG textures) or USDZ for iOS.');
         modelViewer.src = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb';
         if (isIOS) {
           modelViewer.setAttribute('ios-src', modelViewer.src);
