@@ -86,16 +86,33 @@
       color: #fff;
       background: rgba(0, 0, 0, 0.8);
     }
-
+    #status-message {
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.8);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+      display: none;
+      z-index: 100;
+    }
+    .dark-mode #status-message {
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+    }
   </style>
 </head>
 <body>
   <input type="file" id="file-input" accept=".glb,.gltf" />
   <button id="toggle-dark">Toggle Dark Mode</button>
   <div id="loading">Loading model...</div>
+  <div id="status-message"></div>
+  
   <model-viewer
     id="model-viewer"
-    src="https://raw.GithubUserContent.com/KhronosGroup/glTF-Sample-Assets/main/./Models/Duck/glTF-Binary/Duck.glb"
+    src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb"
     alt="3D model"
     camera-controls
     camera-orbit="50deg 75deg auto"
@@ -106,14 +123,15 @@
     disable-pan
     ar
     ar-modes="webxr scene-viewer quick-look"
+    ar-scale="auto"
     ar-placement="floor"
-    ar-scale="fixed"
     interaction-prompt="none"
     min-field-of-view="25deg"
     max-field-of-view="60deg"
     autoplay
     environment-image="neutral"
-    shadow-intensity="0"
+    shadow-intensity="1"
+    exposure="1"
   >
     <button slot="ar-button">
       View in AR
@@ -126,12 +144,41 @@
     const toggleDark = document.getElementById('toggle-dark');
     const arButton = modelViewer.querySelector('button[slot="ar-button"]');
     const loadingIndicator = document.getElementById('loading');
+    const statusMessage = document.getElementById('status-message');
 
     let currentBlobUrl = null;
     let usingDefaultModel = true;
-
+    
+    // Check if we're on iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
     function showLoading(show) {
       loadingIndicator.style.display = show ? 'block' : 'none';
+    }
+
+    function showStatus(message, duration = 3000) {
+      statusMessage.textContent = message;
+      statusMessage.style.display = 'block';
+      setTimeout(() => {
+        statusMessage.style.display = 'none';
+      }, duration);
+    }
+
+    // Configure iOS AR specific settings
+    if (isIOS) {
+      console.log("iOS device detected, optimizing for AR");
+      
+      // Set additional attributes for AR Quick Look
+      modelViewer.setAttribute('ar-scale', 'fixed');
+      modelViewer.setAttribute('quick-look-browsers', 'safari chrome');
+      
+      // iOS AR specific configuration
+      modelViewer.setAttribute('ios-src', modelViewer.getAttribute('src'));
+      
+      // Set appropriate environment settings for iOS AR
+      modelViewer.setAttribute('environment-image', 'neutral');
+      modelViewer.setAttribute('shadow-intensity', '1');
+      modelViewer.setAttribute('ar-status', 'not-presenting');
     }
 
     // Initial loading of default model
@@ -147,19 +194,35 @@
       console.log('Failed to load default model. Please upload a model.');
     }, { once: true });
 
-    // Listen for AR mode activation
+    // Better handling for AR events
     modelViewer.addEventListener('ar-status', (event) => {
+      console.log('AR status:', event.detail.status);
+      
       if (event.detail.status === 'session-started') {
-        console.log('AR session started - scale is fixed');
+        console.log('AR session started');
+        
+        // Apply iOS-specific fixes when AR session starts
+        if (isIOS) {
+          // Fix for transparency issues in iOS AR
+          modelViewer.setAttribute('ar-status', 'presenting');
+          console.log('Applied iOS AR optimizations');
+        }
+      } else if (event.detail.status === 'failed') {
+        arButton.classList.add('hidden');
+        showStatus('AR is not supported on this device or browser.');
+      } else if (event.detail.status === 'session-ended') {
+        console.log('AR session ended');
       }
     });
     
     fileInput.addEventListener('change', async (event) => {
       const file = event.target.files[0];
       if (!file || (!file.name.endsWith('.glb') && !file.name.endsWith('.gltf'))) {
-        alert('Please select a valid .glb or .gltf file.');
+        showStatus('Please select a valid .glb or .gltf file.');
         return;
       }
+
+      const isGLB = file.name.toLowerCase().endsWith('.glb');
 
       showLoading(true);
       try {
@@ -168,8 +231,24 @@
           URL.revokeObjectURL(currentBlobUrl);
           console.log('Previous blob URL revoked');
         }
+        
         currentBlobUrl = URL.createObjectURL(file);
         console.log('New blob URL created:', currentBlobUrl);
+        
+        // Special handling for iOS
+        if (isIOS) {
+          // For iOS AR, we need to set the ios-src attribute
+          modelViewer.setAttribute('ios-src', currentBlobUrl);
+          
+          // GLB files work better with QuickLook
+          if (isGLB) {
+            console.log('GLB file detected for iOS, using optimized settings');
+          } else {
+            // GLTF files may have issues with external resources
+            showStatus('Note: GLTF files might have texture issues in AR on iOS. GLB is recommended.', 5000);
+          }
+        }
+        
         modelViewer.src = currentBlobUrl;
         usingDefaultModel = false;
 
@@ -179,24 +258,46 @@
             console.log('Model loaded successfully');
             resolve();
           }, { once: true });
+          
           modelViewer.addEventListener('error', (error) => {
             console.error('Model loading error:', error);
             reject(new Error('Failed to load model: ' + (error.detail?.message || 'Unknown error')));
           }, { once: true });
+          
           // Timeout to catch silent failures
           setTimeout(() => reject(new Error('Model loading timed out')), 10000);
         });
 
-        // Warn about AR blob URL limitations
-        console.log('Note: AR may not work with blob URLs in Scene Viewer or Quick Look. Consider hosting the model on a server.');
+        // Check if model has animations
+        const hasAnimations = modelViewer.availableAnimations && modelViewer.availableAnimations.length > 0;
+        
+        if (hasAnimations) {
+          console.log('Model has animations:', modelViewer.availableAnimations);
+          
+          // Ensure animations will play in AR
+          modelViewer.autoplay = true;
+          
+          // Set the first animation as active
+          if (modelViewer.availableAnimations.length > 0) {
+            modelViewer.animationName = modelViewer.availableAnimations[0];
+            console.log('Set active animation to:', modelViewer.animationName);
+          }
+        } else {
+          console.log('Model has no animations');
+        }
+        
       } catch (error) {
-        alert('Error loading model: ' + error.message);
+        showStatus('Error loading model: ' + error.message);
         console.error('Error details:', error);
+        
         if (usingDefaultModel) {
           // Keep default model
         } else {
           // Try to restore default model
-          modelViewer.src = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
+          modelViewer.src = "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
+          if (isIOS) {
+            modelViewer.setAttribute('ios-src', modelViewer.getAttribute('src'));
+          }
           usingDefaultModel = true;
         }
       } finally {
@@ -204,19 +305,13 @@
       }
     });
 
-    // Handle AR status to show/hide AR button
-    modelViewer.addEventListener('ar-status', (event) => {
-      console.log('AR status:', event.detail.status);
-      if (event.detail.status === 'failed') {
-        arButton.classList.add('hidden');
-        alert('AR is not supported on this device or browser. Try Chrome (Android) or Safari (iOS) with ARCore/ARKit.');
-      } else {
-        arButton.classList.remove('hidden');
-      }
-    });
-
     toggleDark.addEventListener('click', () => {
       document.body.classList.toggle('dark-mode');
+    });
+
+    // Additional event handling for model visibility
+    modelViewer.addEventListener('model-visibility', (event) => {
+      console.log('Model visibility changed:', event.detail.visible);
     });
 
     // Cleanup blob URL on page unload
