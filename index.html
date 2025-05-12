@@ -105,7 +105,7 @@
   </style>
 </head>
 <body>
-  <input type="file" id="file-input" accept=".glb,.usdz" />
+  <input type="file" id="file-input" accept=".glb" />
   <button id="toggle-dark">Toggle Dark Mode</button>
   <div id="loading">Loading model...</div>
   <div id="status-message"></div>
@@ -168,14 +168,14 @@
     modelViewer.addEventListener('load', () => {
       showLoading(false);
       if (usingDefaultModel && isIOS) {
-        showStatus('Duck GLB loaded. Click "View in AR" to try AR. If AR fails, upload a USDZ file.');
+        showStatus('Duck GLB loaded. Click "View in AR" to try AR. If AR fails, simplify the GLB (single mesh, PNG/JPEG textures).');
       }
     }, { once: true });
     
     modelViewer.addEventListener('error', (error) => {
       console.error('Model Viewer Error:', error);
       showLoading(false);
-      showStatus('Failed to load model: ' + (error.detail?.message || 'Unknown error') + '. Try a simple GLB (single mesh, PNG/JPEG textures) or USDZ.');
+      showStatus('Failed to load model: ' + (error.detail?.message || 'Unknown error') + '. Use a simple GLB (single mesh, PNG/JPEG textures).');
     }, { once: true });
 
     modelViewer.addEventListener('ar-status', (event) => {
@@ -185,7 +185,7 @@
         }
       } else if (event.detail.status === 'failed') {
         arButton.classList.add('hidden');
-        showStatus('AR failed. Try a simple GLB (single mesh, PNG/JPEG textures) or upload a USDZ file for iOS.');
+        showStatus('AR failed. Use a simple GLB (single mesh, PNG/JPEG textures) or try a different GLB.');
       } else if (event.detail.status === 'session-ended') {
         arButton.classList.remove('hidden');
       }
@@ -193,8 +193,8 @@
     
     fileInput.addEventListener('change', async (event) => {
       const file = event.target.files[0];
-      if (!file || (!file.name.endsWith('.glb') && !file.name.endsWith('.usdz'))) {
-        showStatus('Please select a valid .glb or .usdz file.');
+      if (!file || !file.name.endsWith('.glb')) {
+        showStatus('Please select a valid .glb file.');
         return;
       }
 
@@ -204,29 +204,13 @@
           URL.revokeObjectURL(currentBlobUrl);
         }
         
-        const blob = new Blob([file], {
-          type: file.name.endsWith('.usdz') ? 'model/vnd.usdz+zip' : 'model/gltf-binary',
-        });
+        const blob = new Blob([file], { type: 'model/gltf-binary' });
         currentBlobUrl = URL.createObjectURL(blob);
         
-        if (file.name.endsWith('.usdz')) {
-          if (isIOS) {
-            modelViewer.setAttribute('ios-src', currentBlobUrl);
-            modelViewer.src = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb';
-            showStatus('USDZ loaded for AR on iOS. Using Duck GLB for 3D view.');
-          } else {
-            showStatus('USDZ files are only supported for AR on iOS. Loading Duck GLB.');
-            modelViewer.src = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb';
-            if (isIOS) {
-              modelViewer.setAttribute('ios-src', modelViewer.src);
-            }
-          }
-        } else {
-          modelViewer.src = currentBlobUrl;
-          if (isIOS) {
-            modelViewer.setAttribute('ios-src', currentBlobUrl);
-            showStatus('GLB loaded. Click "View in AR" to try AR. If AR fails, try a simpler GLB or upload a USDZ file.');
-          }
+        modelViewer.src = currentBlobUrl;
+        if (isIOS) {
+          modelViewer.setAttribute('ios-src', currentBlobUrl);
+          showStatus('GLB loaded. Click "View in AR" to try AR. If AR fails, simplify the GLB (single mesh, PNG/JPEG textures).');
         }
         usingDefaultModel = false;
 
@@ -255,7 +239,7 @@
         }
         
       } catch (error) {
-        showStatus('Error loading model: ' + error.message + '. Try a simple GLB or USDZ.');
+        showStatus('Error loading model: ' + error.message + '. Use a simple GLB (single mesh, PNG/JPEG textures).');
         modelViewer.src = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb';
         if (isIOS) {
           modelViewer.setAttribute('ios-src', modelViewer.src);
