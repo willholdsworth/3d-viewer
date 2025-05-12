@@ -210,16 +210,10 @@
         const blob = new Blob([file], { type: 'model/gltf-binary' });
         currentBlobUrl = URL.createObjectURL(blob);
         
-        if (isIOS) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const dataUrl = reader.result;
-            modelViewer.setAttribute('ios-src', dataUrl);
-          };
-          reader.readAsDataURL(file);
-        }
-        
         modelViewer.src = currentBlobUrl;
+        if (isIOS) {
+          modelViewer.setAttribute('ios-src', currentBlobUrl);
+        }
         usingDefaultModel = false;
 
         await new Promise((resolve, reject) => {
