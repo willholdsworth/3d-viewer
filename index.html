@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="ar-enabled" content="true" />
-  <title>Fullscreen GLB and USDZ Viewer with AR</title>
+  <title>Fullscreen GLB Viewer</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   <style>
     html, body {
@@ -105,7 +104,7 @@
   </style>
 </head>
 <body>
-  <input type="file" id="file-input" accept=".glb,.usdz" />
+  <input type="file" id="file-input" accept=".glb" />
   <button id="toggle-dark">Toggle Dark Mode</button>
   <div id="loading">Loading model...</div>
   <div id="status-message"></div>
@@ -113,7 +112,6 @@
   <model-viewer
     id="model-viewer"
     src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb"
-    ios-src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb"
     alt="3D model"
     camera-controls
     camera-orbit="50deg 75deg auto"
@@ -147,11 +145,20 @@
     const loadingIndicator = document.getElementById('loading');
     const statusMessage = document.getElementById('status-message');
 
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isAndroid = /Android/.test(navigator.userAgent);
+
+    // Disable AR on iOS
+    if (isIOS) {
+      modelViewer.ar = false;
+      if (arButton) {
+        arButton.style.display = 'none';
+      }
+    }
+
     let currentBlobUrl = null;
     let usingDefaultModel = true;
-    
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    
+
     function showLoading(show) {
       loadingIndicator.style.display = show ? 'block' : 'none';
     }
@@ -167,34 +174,27 @@
     showLoading(true);
     modelViewer.addEventListener('load', () => {
       showLoading(false);
-      if (usingDefaultModel && isIOS) {
-        showStatus('Duck GLB loaded. Click "View in AR" to try AR. For best iOS AR, use a USDZ file.');
+      if (usingDefaultModel) {
+        if (isIOS) {
+          showStatus('Duck GLB loaded. AR is disabled on iOS.');
+        } else if (isAndroid) {
+          showStatus('Duck GLB loaded. Click "View in AR" to try AR.');
+        } else {
+          showStatus('Duck GLB loaded.');
+        }
       }
     }, { once: true });
-    
+
     modelViewer.addEventListener('error', (error) => {
       console.error('Model Viewer Error:', error);
       showLoading(false);
-      showStatus('Failed to load model: ' + (error.detail?.message || 'Unknown error') + '. Use a simple GLB (single mesh, PNG/JPEG textures) or USDZ for iOS.');
+      showStatus('Failed to load model: ' + (error.detail?.message || 'Unknown error') + '. Use a simple GLB (single mesh, PNG/JPEG textures).');
     }, { once: true });
 
-    modelViewer.addEventListener('ar-status', (event) => {
-      if (event.detail.status === 'session-started') {
-        if (isIOS) {
-          modelViewer.setAttribute('ar-status', 'presenting');
-        }
-      } else if (event.detail.status === 'failed') {
-        arButton.classList.add('hidden');
-        showStatus('AR failed. Use a simple GLB (single mesh, PNG/JPEG textures) or USDZ for iOS.');
-      } else if (event.detail.status === 'session-ended') {
-        arButton.classList.remove('hidden');
-      }
-    });
-    
     fileInput.addEventListener('change', async (event) => {
       const file = event.target.files[0];
-      if (!file || (!file.name.endsWith('.glb') && !file.name.endsWith('.usdz'))) {
-        showStatus('Please select a valid .glb or .usdz file.');
+      if (!file || !file.name.endsWith('.glb')) {
+        showStatus('Please select a valid .glb file.');
         return;
       }
 
@@ -203,62 +203,32 @@
         if (currentBlobUrl) {
           URL.revokeObjectURL(currentBlobUrl);
         }
-        
-        const isUsdz = file.name.endsWith('.usdz');
-        const mimeType = isUsdz ? 'model/vnd.usdz+zip' : 'model/gltf-binary';
-        const blob = new Blob([file], { type: mimeType });
+        const blob = new Blob([file], { type: 'model/gltf-binary' });
         currentBlobUrl = URL.createObjectURL(blob);
-        
-        if (isUsdz) {
-          if (isIOS) {
-            modelViewer.setAttribute('ios-src', currentBlobUrl);
-            modelViewer.src = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb'; // Fallback for non-AR view
-            showStatus('USDZ loaded for iOS AR. Click "View in AR" to try it.');
-          } else {
-            showStatus('USDZ files are only supported on iOS devices. Please upload a GLB file.');
-            throw new Error('USDZ not supported on non-iOS devices');
-          }
-        } else {
-          modelViewer.src = currentBlobUrl;
-          if (isIOS) {
-            modelViewer.setAttribute('ios-src', currentBlobUrl);
-            showStatus('GLB loaded. Click "View in AR" to try AR. For best iOS AR, use a USDZ file.');
-          }
-        }
+        modelViewer.src = currentBlobUrl;
         usingDefaultModel = false;
 
         await new Promise((resolve, reject) => {
           modelViewer.addEventListener('load', () => {
-            arButton.classList.remove('hidden');
             resolve();
           }, { once: true });
-          
           modelViewer.addEventListener('error', (error) => {
-            console.error('Model Viewer Error:', error);
             reject(new Error('Failed to load model: ' + (error.detail?.message || 'Unknown error')));
           }, { once: true });
-          
           setTimeout(() => reject(new Error('Model loading timed out')), 10000);
         });
 
         const hasAnimations = modelViewer.availableAnimations && modelViewer.availableAnimations.length > 0;
-        if (hasAnimations && !isIOS && !isUsdz) {
+        if (hasAnimations) {
           modelViewer.autoplay = true;
           if (modelViewer.availableAnimations.length > 0) {
             modelViewer.animationName = modelViewer.availableAnimations[0];
           }
-        } else if (isIOS && hasAnimations) {
-          showStatus('Animations may not work in iOS AR. Use a simple GLB or USDZ for best results.');
         }
-        
       } catch (error) {
-        showStatus('Error loading model: ' + error.message + '. Use a simple GLB (single mesh, PNG/JPEG textures) or USDZ for iOS.');
+        showStatus('Error loading model: ' + error.message + '. Use a simple GLB (single mesh, PNG/JPEG textures).');
         modelViewer.src = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb';
-        if (isIOS) {
-          modelViewer.setAttribute('ios-src', modelViewer.src);
-        }
         usingDefaultModel = true;
-        arButton.classList.remove('hidden');
       } finally {
         showLoading(false);
       }
