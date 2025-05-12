@@ -112,7 +112,7 @@
   
   <model-viewer
     id="model-viewer"
-    src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb"
+    src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb"
     alt="3D model"
     camera-controls
     camera-orbit="50deg 75deg auto"
@@ -173,7 +173,7 @@
       modelViewer.setAttribute('quick-look-browsers', 'safari chrome');
       
       // iOS AR specific configuration
-      modelViewer.setAttribute('ios-src', modelViewer.getAttribute('src'));
+      modelViewer.setAttribute('ios-src', 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb');
       
       // Set appropriate environment settings for iOS AR
       modelViewer.setAttribute('environment-image', 'neutral');
@@ -294,7 +294,7 @@
           // Keep default model
         } else {
           // Try to restore default model
-          modelViewer.src = "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
+          modelViewer.src = "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb";
           if (isIOS) {
             modelViewer.setAttribute('ios-src', modelViewer.getAttribute('src'));
           }
