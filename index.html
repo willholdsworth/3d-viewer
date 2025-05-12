@@ -149,7 +149,6 @@
     let currentBlobUrl = null;
     let usingDefaultModel = true;
     
-    // Check if we're on iOS
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     
     function showLoading(show) {
@@ -164,9 +163,7 @@
       }, duration);
     }
 
-    // Configure iOS AR specific settings
     if (isIOS) {
-      modelViewer.setAttribute('ar-scale', 'fixed');
       modelViewer.setAttribute('quick-look-browsers', 'safari chrome');
       modelViewer.setAttribute('ios-src', 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb');
       modelViewer.setAttribute('environment-image', 'neutral');
@@ -174,7 +171,6 @@
       modelViewer.setAttribute('ar-status', 'not-presenting');
     }
 
-    // Initial loading of default model
     showLoading(true);
     modelViewer.addEventListener('load', () => {
       showLoading(false);
@@ -182,10 +178,9 @@
     
     modelViewer.addEventListener('error', (error) => {
       showLoading(false);
-      showStatus('Failed to load default model. Please upload a .glb model.');
+      showStatus('Failed to load default model. Please upload a .glb file.');
     }, { once: true });
 
-    // Handle AR events
     modelViewer.addEventListener('ar-status', (event) => {
       if (event.detail.status === 'session-started') {
         if (isIOS) {
@@ -193,7 +188,7 @@
         }
       } else if (event.detail.status === 'failed') {
         arButton.classList.add('hidden');
-        showStatus('AR failed. Try a different .glb model.');
+        showStatus('AR failed. Try a different .glb file.');
       } else if (event.detail.status === 'session-ended') {
         arButton.classList.remove('hidden');
       }
@@ -216,7 +211,12 @@
         currentBlobUrl = URL.createObjectURL(blob);
         
         if (isIOS) {
-          modelViewer.setAttribute('ios-src', currentBlobUrl);
+          const reader = new FileReader();
+          reader.onload = () => {
+            const dataUrl = reader.result;
+            modelViewer.setAttribute('ios-src', dataUrl);
+          };
+          reader.readAsDataURL(file);
         }
         
         modelViewer.src = currentBlobUrl;
@@ -259,8 +259,6 @@
     toggleDark.addEventListener('click', () => {
       document.body.classList.toggle('dark-mode');
     });
-
-    modelViewer.addEventListener('model-visibility', (event) => {});
 
     window.addEventListener('beforeunload', () => {
       if (currentBlobUrl) {
