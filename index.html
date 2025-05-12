@@ -105,7 +105,7 @@
   </style>
 </head>
 <body>
-  <input type="file" id="file-input" accept=".glb,.gltf" />
+  <input type="file" id="file-input" accept=".glb" />
   <button id="toggle-dark">Toggle Dark Mode</button>
   <div id="loading">Loading model...</div>
   <div id="status-message"></div>
@@ -123,7 +123,7 @@
     disable-pan
     ar
     ar-modes="webxr scene-viewer quick-look"
-    ar-scale="auto"
+    ar-scale="fixed"
     ar-placement="floor"
     interaction-prompt="none"
     min-field-of-view="25deg"
@@ -166,16 +166,9 @@
 
     // Configure iOS AR specific settings
     if (isIOS) {
-      console.log("iOS device detected, optimizing for AR");
-      
-      // Set additional attributes for AR Quick Look
       modelViewer.setAttribute('ar-scale', 'fixed');
       modelViewer.setAttribute('quick-look-browsers', 'safari chrome');
-      
-      // iOS AR specific configuration
       modelViewer.setAttribute('ios-src', 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb');
-      
-      // Set appropriate environment settings for iOS AR
       modelViewer.setAttribute('environment-image', 'neutral');
       modelViewer.setAttribute('shadow-intensity', '1');
       modelViewer.setAttribute('ar-status', 'not-presenting');
@@ -185,121 +178,79 @@
     showLoading(true);
     modelViewer.addEventListener('load', () => {
       showLoading(false);
-      console.log('Default model loaded successfully');
     }, { once: true });
     
     modelViewer.addEventListener('error', (error) => {
       showLoading(false);
-      console.error('Default model loading error:', error);
-      console.log('Failed to load default model. Please upload a model.');
+      showStatus('Failed to load default model. Please upload a .glb model.');
     }, { once: true });
 
-    // Better handling for AR events
+    // Handle AR events
     modelViewer.addEventListener('ar-status', (event) => {
-      console.log('AR status:', event.detail.status);
-      
       if (event.detail.status === 'session-started') {
-        console.log('AR session started');
-        
-        // Apply iOS-specific fixes when AR session starts
         if (isIOS) {
-          // Fix for transparency issues in iOS AR
           modelViewer.setAttribute('ar-status', 'presenting');
-          console.log('Applied iOS AR optimizations');
         }
       } else if (event.detail.status === 'failed') {
         arButton.classList.add('hidden');
-        showStatus('AR is not supported on this device or browser.');
+        showStatus('AR failed. Try a different .glb model.');
       } else if (event.detail.status === 'session-ended') {
-        console.log('AR session ended');
+        arButton.classList.remove('hidden');
       }
     });
     
     fileInput.addEventListener('change', async (event) => {
       const file = event.target.files[0];
-      if (!file || (!file.name.endsWith('.glb') && !file.name.endsWith('.gltf'))) {
-        showStatus('Please select a valid .glb or .gltf file.');
+      if (!file || !file.name.endsWith('.glb')) {
+        showStatus('Please select a valid .glb file.');
         return;
       }
 
-      const isGLB = file.name.toLowerCase().endsWith('.glb');
-
       showLoading(true);
       try {
-        // Revoke previous blob URL to prevent memory leaks
         if (currentBlobUrl) {
           URL.revokeObjectURL(currentBlobUrl);
-          console.log('Previous blob URL revoked');
         }
         
-        currentBlobUrl = URL.createObjectURL(file);
-        console.log('New blob URL created:', currentBlobUrl);
+        const blob = new Blob([file], { type: 'model/gltf-binary' });
+        currentBlobUrl = URL.createObjectURL(blob);
         
-        // Special handling for iOS
         if (isIOS) {
-          // For iOS AR, we need to set the ios-src attribute
           modelViewer.setAttribute('ios-src', currentBlobUrl);
-          
-          // GLB files work better with QuickLook
-          if (isGLB) {
-            console.log('GLB file detected for iOS, using optimized settings');
-          } else {
-            // GLTF files may have issues with external resources
-            showStatus('Note: GLTF files might have texture issues in AR on iOS. GLB is recommended.', 5000);
-          }
         }
         
         modelViewer.src = currentBlobUrl;
         usingDefaultModel = false;
 
-        // Wait for model to load
         await new Promise((resolve, reject) => {
           modelViewer.addEventListener('load', () => {
-            console.log('Model loaded successfully');
+            arButton.classList.remove('hidden');
             resolve();
           }, { once: true });
           
           modelViewer.addEventListener('error', (error) => {
-            console.error('Model loading error:', error);
             reject(new Error('Failed to load model: ' + (error.detail?.message || 'Unknown error')));
           }, { once: true });
           
-          // Timeout to catch silent failures
           setTimeout(() => reject(new Error('Model loading timed out')), 10000);
         });
 
-        // Check if model has animations
         const hasAnimations = modelViewer.availableAnimations && modelViewer.availableAnimations.length > 0;
-        
         if (hasAnimations) {
-          console.log('Model has animations:', modelViewer.availableAnimations);
-          
-          // Ensure animations will play in AR
           modelViewer.autoplay = true;
-          
-          // Set the first animation as active
           if (modelViewer.availableAnimations.length > 0) {
             modelViewer.animationName = modelViewer.availableAnimations[0];
-            console.log('Set active animation to:', modelViewer.animationName);
           }
-        } else {
-          console.log('Model has no animations');
         }
         
       } catch (error) {
         showStatus('Error loading model: ' + error.message);
-        console.error('Error details:', error);
-        
-        if (usingDefaultModel) {
-          // Keep default model
-        } else {
-          // Try to restore default model
-          modelViewer.src = "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb";
-          if (isIOS) {
-            modelViewer.setAttribute('ios-src', modelViewer.getAttribute('src'));
-          }
-          usingDefaultModel = true;
+        modelViewer.src = "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Duck/glTF-Binary/Duck.glb";
+        if (isIOS) {
+          modelViewer.setAttribute('ios-src', modelViewer.getAttribute('src'));
         }
+        usingDefaultModel = true;
+        arButton.classList.remove('hidden');
       } finally {
         showLoading(false);
       }
@@ -309,16 +260,11 @@
       document.body.classList.toggle('dark-mode');
     });
 
-    // Additional event handling for model visibility
-    modelViewer.addEventListener('model-visibility', (event) => {
-      console.log('Model visibility changed:', event.detail.visible);
-    });
+    modelViewer.addEventListener('model-visibility', (event) => {});
 
-    // Cleanup blob URL on page unload
     window.addEventListener('beforeunload', () => {
       if (currentBlobUrl) {
         URL.revokeObjectURL(currentBlobUrl);
-        console.log('Blob URL cleaned up on unload');
       }
     });
   </script>
