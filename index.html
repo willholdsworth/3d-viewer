@@ -123,7 +123,7 @@
     field-of-view="180deg"
     disable-pan
     ar
-    ar-modes="webxr scene-viewer quick-look"
+    ar-modes="quick-look"
     ar-scale="fixed"
     ar-placement="floor"
     interaction-prompt="none"
@@ -227,16 +227,6 @@
           
           setTimeout(() => reject(new Error('Model loading timed out')), 10000);
         });
-
-        const hasAnimations = modelViewer.availableAnimations && modelViewer.availableAnimations.length > 0;
-        if (hasAnimations && !isIOS) {
-          modelViewer.autoplay = true;
-          if (modelViewer.availableAnimations.length > 0) {
-            modelViewer.animationName = modelViewer.availableAnimations[0];
-          }
-        } else if (isIOS && hasAnimations) {
-          showStatus('Animations may not work in iOS AR. Simplify the GLB for best results.');
-        }
         
       } catch (error) {
         showStatus('Error loading model: ' + error.message + '. Use a simple GLB (single mesh, PNG/JPEG textures).');
